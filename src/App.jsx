@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -6,7 +7,7 @@ import 'react-toastify/dist/ReactToastify.css';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
-import Compose from './pages/Compose';
+import ComposeNewPost from './pages/ComposeNewPost';
 import Posts from './pages/Posts';
 import Feedbacks from './pages/Feedbacks';
 import Users from './pages/Users';
@@ -19,6 +20,9 @@ import LoadingSpinner from './components/LoadingSpinner';
 import useStore from './store';
 
 function AdminRoutes() {
+
+  const queryClient = new QueryClient();
+
   const location = useLocation();
   const { setLoading } = useStore();
 
@@ -33,10 +37,12 @@ function AdminRoutes() {
   }, [location.pathname, setLoading]);
 
   return (
+    <QueryClientProvider client={queryClient}>
+
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" />} />
       <Route path="/dashboard" element={<Dashboard />} />
-      <Route path="/compose" element={<Compose />} />
+      <Route path="/compose" element={<ComposeNewPost />} />
       <Route path="/posts" element={<Posts />} />
       <Route path="/users" element={<Users />} />
       <Route path="/users/:userId" element={<UserDetail />} />
@@ -44,6 +50,7 @@ function AdminRoutes() {
       <Route path="/login" element={<Navigate to="/dashboard" />} />
       <Route path="/register" element={<Navigate to="/dashboard" />} />
     </Routes>
+    </QueryClientProvider>
   );
 }
 
