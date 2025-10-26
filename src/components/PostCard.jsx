@@ -29,7 +29,7 @@ export default function PostCard({ post, onEdit, onDelete, onToggleStatus }) {
     onToggleStatus(post?._id);
     setShowMenu(false);
   };
-  console.log(post?.createdAt);
+
   return (
     <div className="bg-white rounded-lg shadow hover:shadow-md transition-shadow">
       {/* Post Image */}
@@ -130,24 +130,24 @@ export default function PostCard({ post, onEdit, onDelete, onToggleStatus }) {
             <div className="flex items-center space-x-1">
               <FiHeart className="w-4 h-4" />
               <span>
-                {post?.feedback?.totalLikes > 0
-                  ? post?.feedback?.totalLikes
+                {post?.feedbackStats?.totalLikes > 0
+                  ? post?.feedbackStats?.totalLikes
                   : ""}
               </span>
             </div>
             <div className="flex items-center space-x-1">
               <FiEye className="w-4 h-4" />
               <span>
-                {post?.feedback?.totalViews > 0
-                  ? post?.feedback?.totalViews
+                {post?.feedbackStats?.totalViews > 0
+                  ? post?.feedbackStats?.totalViews
                   : ""}
               </span>
             </div>
             <div className="flex items-center space-x-1">
               <FiMessageCircle className="w-4 h-4" />
               <span>
-                {post?.feedback?.totalComments > 0
-                  ? post?.feedback?.totalComments
+                {post?.feedbackStats?.totalComments > 0
+                  ? post?.feedbackStats?.totalComments
                   : ""}
               </span>
             </div>

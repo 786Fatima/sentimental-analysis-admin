@@ -55,9 +55,9 @@ export default function Posts() {
           case "oldest":
             return new Date(a?.createdAt) - new Date(b?.createdAt);
           case "most-liked":
-            return b?.feedback?.totalLikes - a?.feedback?.totalLikes;
+            return b?.feedbackStats?.totalLikes - a?.feedbackStats?.totalLikes;
           case "most-viewed":
-            return b?.feedback?.totalViews - a?.feedback?.totalViews;
+            return b?.feedbackStats?.totalViews - a?.feedbackStats?.totalViews;
           default:
             return 0;
         }
@@ -215,14 +215,16 @@ export default function Posts() {
 
               {/* Stats */}
               <div className="flex items-center space-x-6 text-sm text-gray-600 pt-4 border-t">
-                {selectedPost?.feedback?.totalLikes > 0 && (
-                  <span>{selectedPost?.feedback?.totalLikes} likes</span>
+                {selectedPost?.feedbackStats?.totalLikes > 0 && (
+                  <span>{selectedPost?.feedbackStats?.totalLikes} likes</span>
                 )}
-                {selectedPost?.feedback?.totalViews > 0 && (
-                  <span>{selectedPost?.feedback?.totalViews} views</span>
+                {selectedPost?.feedbackStats?.totalViews > 0 && (
+                  <span>{selectedPost?.feedbackStats?.totalViews} views</span>
                 )}
-                {selectedPost?.feedback?.totalComments > 0 && (
-                  <span>{selectedPost?.feedback?.totalComments} comments</span>
+                {selectedPost?.feedbackStats?.totalComments > 0 && (
+                  <span>
+                    {selectedPost?.feedbackStats?.totalComments} comments
+                  </span>
                 )}
                 <span
                   className={`px-2 py-1 rounded text-xs ${

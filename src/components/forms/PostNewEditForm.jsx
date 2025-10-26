@@ -313,7 +313,7 @@ export default function PostNewEditForm() {
                 Select Tag
               </option>
               {tags?.map((tag) => (
-                <option key={tag.id} value={tag.id}>
+                <option key={tag.id} value={tag.name}>
                   {tag.name}
                 </option>
               ))}
