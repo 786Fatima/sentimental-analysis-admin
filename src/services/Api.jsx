@@ -13,7 +13,7 @@ const API = axios.create({
 
 // fallback token for development (use localStorage in production)
 const FALLBACK_TOKEN =
-  "eyJhZG1pbl9pZCI6IjY4ZTIxY2M0MzVlMDRlZjk1MWRmZTI2OSJ9.aPkY1A.YFJ0u911ujipNck2x5e4krUYizo";
+  "eyJhZG1pbl9pZCI6IjY4ZmE2NjFjNDcxZjA3MjEzNmZiOWZmZSJ9.aPpmPg.SuxE1GpA-9BPljb7hpiB8jAoElc";
 
 // Attach Authorization header to every request using token from localStorage
 API.interceptors.request.use(

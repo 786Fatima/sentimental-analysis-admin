@@ -1,55 +1,75 @@
-import React, { useState, useEffect } from 'react';
-import { FiSearch, FiFilter, FiPlus, FiX, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
-import { toast } from 'react-toastify';
-import PostCard from '../components/PostCard';
-import useStore from '../store';
+import React, { useState, useEffect } from "react";
+import {
+  FiSearch,
+  FiFilter,
+  FiPlus,
+  FiX,
+  FiChevronLeft,
+  FiChevronRight,
+} from "react-icons/fi";
+import { toast } from "react-toastify";
+import DOMPurify from "dompurify";
+import PostCard from "../components/PostCard";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { useGetAllPosts } from "../services/postServices";
+import { STATUS } from "../utils/constants";
 
 export default function Posts() {
-  const { posts } = useStore();
+  const {
+    data: posts,
+    isLoading: postIsLoading,
+    isError: postIsError,
+  } = useGetAllPosts();
+
   const [filteredPosts, setFilteredPosts] = useState([]);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [filterStatus, setFilterStatus] = useState('all');
-  const [sortBy, setSortBy] = useState('newest');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [sortBy, setSortBy] = useState("newest");
   const [selectedPost, setSelectedPost] = useState(null);
   const [showModal, setShowModal] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
-    let filtered = [...posts];
+    if (!postIsLoading && posts) {
+      let filtered = [...posts];
 
-    // Search filter
-    if (searchTerm) {
-      filtered = filtered.filter(post =>
-        post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        post.description.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    // Status filter
-    if (filterStatus !== 'all') {
-      filtered = filtered.filter(post =>
-        filterStatus === 'active' ? post.isActive : !post.isActive
-      );
-    }
-
-    // Sort
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt) - new Date(a.createdAt);
-        case 'oldest':
-          return new Date(a.createdAt) - new Date(b.createdAt);
-        case 'most-liked':
-          return b.likes - a.likes;
-        case 'most-viewed':
-          return b.views - a.views;
-        default:
-          return 0;
+      // Search filter
+      if (searchTerm) {
+        filtered = filtered.filter(
+          (post) =>
+            post?.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            post?.description?.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       }
-    });
 
-    setFilteredPosts(filtered);
-  }, [posts, searchTerm, filterStatus, sortBy]);
+      // Status filter
+      if (filterStatus !== "all") {
+        filtered = filtered?.filter((post) => post?.status === filterStatus);
+      }
+
+      // Sort
+      filtered?.sort((a, b) => {
+        switch (sortBy) {
+          case "newest":
+            return new Date(b?.createdAt) - new Date(a?.createdAt);
+          case "oldest":
+            return new Date(a?.createdAt) - new Date(b?.createdAt);
+          case "most-liked":
+            return b?.feedback?.totalLikes - a?.feedback?.totalLikes;
+          case "most-viewed":
+            return b?.feedback?.totalViews - a?.feedback?.totalViews;
+          default:
+            return 0;
+        }
+      });
+
+      setFilteredPosts(filtered);
+    }
+  }, [postIsLoading, posts, searchTerm, filterStatus, sortBy]);
+
+  if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
+
+  // if (postIsError) return <ErrorScreen />;
 
   const handlePostClick = (post) => {
     setSelectedPost(post);
@@ -58,18 +78,20 @@ export default function Posts() {
   };
 
   const handleEdit = (post) => {
-    toast.info(`Edit functionality for "${post.title}" would be implemented here`);
+    toast.info(
+      `Edit functionality for "${post.title}" would be implemented here`
+    );
   };
 
   const handleDelete = (postId) => {
-    if (window.confirm('Are you sure you want to delete this post?')) {
-      toast.success('Post deleted successfully');
+    if (window.confirm("Are you sure you want to delete this post?")) {
+      toast.success("Post deleted successfully");
       // In real app, would call API to delete
     }
   };
 
   const handleToggleStatus = (postId) => {
-    toast.success('Post status updated successfully');
+    toast.success("Post status updated successfully");
     // In real app, would call API to toggle status
   };
 
@@ -97,7 +119,9 @@ export default function Posts() {
         <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
           {/* Modal Header */}
           <div className="flex items-center justify-between p-6 border-b">
-            <h2 className="text-xl font-semibold text-gray-900">Post Details</h2>
+            <h2 className="text-xl font-semibold text-gray-900">
+              Post Details
+            </h2>
             <button
               onClick={() => setShowModal(false)}
               className="p-2 hover:bg-gray-100 rounded-full"
@@ -109,15 +133,15 @@ export default function Posts() {
           {/* Modal Content */}
           <div className="p-6">
             {/* Images Carousel */}
-            {selectedPost.images && selectedPost.images.length > 0 && (
+            {selectedPost?.images && selectedPost?.images.length > 0 && (
               <div className="relative mb-6">
                 <img
-                  src={selectedPost.images[currentImageIndex]}
-                  alt={selectedPost.title}
+                  src={selectedPost?.images[currentImageIndex]}
+                  alt={selectedPost?.title}
                   className="w-full h-64 object-cover rounded-lg"
                 />
-                
-                {selectedPost.images.length > 1 && (
+
+                {selectedPost?.images.length > 1 && (
                   <>
                     <button
                       onClick={prevImage}
@@ -131,7 +155,7 @@ export default function Posts() {
                     >
                       <FiChevronRight className="w-5 h-5" />
                     </button>
-                    
+
                     {/* Image indicators */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                       {selectedPost.images.map((_, index) => (
@@ -139,7 +163,9 @@ export default function Posts() {
                           key={index}
                           onClick={() => setCurrentImageIndex(index)}
                           className={`w-2 h-2 rounded-full ${
-                            index === currentImageIndex ? 'bg-white' : 'bg-white bg-opacity-50'
+                            index === currentImageIndex
+                              ? "bg-white"
+                              : "bg-white bg-opacity-50"
                           }`}
                         />
                       ))}
@@ -151,19 +177,32 @@ export default function Posts() {
 
             {/* Post Info */}
             <div className="space-y-4">
-              <h3 className="text-2xl font-bold text-gray-900">{selectedPost.title}</h3>
-              
+              <h3 className="text-2xl font-bold text-gray-900">
+                {selectedPost?.title}
+              </h3>
+
               <div className="flex items-center space-x-4 text-sm text-gray-500">
-                <span>Created: {new Date(selectedPost.createdAt).toLocaleDateString()}</span>
-                <span>Updated: {new Date(selectedPost.updatedAt).toLocaleDateString()}</span>
+                <span>
+                  Created:{" "}
+                  {new Date(selectedPost?.createdAt).toLocaleDateString()}
+                </span>
+                <span>
+                  Updated:{" "}
+                  {new Date(selectedPost?.updatedAt).toLocaleDateString()}
+                </span>
               </div>
 
-              <p className="text-gray-700 leading-relaxed">{selectedPost.description}</p>
+              <p
+                className="text-gray-700 leading-relaxed"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(selectedPost?.description || ""),
+                }}
+              />
 
               {/* Tags */}
-              {selectedPost.tags && selectedPost.tags.length > 0 && (
+              {selectedPost?.tags && selectedPost?.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {selectedPost.tags.map((tag, index) => (
+                  {selectedPost?.tags.map((tag, index) => (
                     <span
                       key={index}
                       className="px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full"
@@ -176,13 +215,23 @@ export default function Posts() {
 
               {/* Stats */}
               <div className="flex items-center space-x-6 text-sm text-gray-600 pt-4 border-t">
-                <span>{selectedPost.likes} likes</span>
-                <span>{selectedPost.views} views</span>
-                <span>{selectedPost.comments} comments</span>
-                <span className={`px-2 py-1 rounded text-xs ${
-                  selectedPost.isActive ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedPost.isActive ? 'Active' : 'Disabled'}
+                {selectedPost?.feedback?.totalLikes > 0 && (
+                  <span>{selectedPost?.feedback?.totalLikes} likes</span>
+                )}
+                {selectedPost?.feedback?.totalViews > 0 && (
+                  <span>{selectedPost?.feedback?.totalViews} views</span>
+                )}
+                {selectedPost?.feedback?.totalComments > 0 && (
+                  <span>{selectedPost?.feedback?.totalComments} comments</span>
+                )}
+                <span
+                  className={`px-2 py-1 rounded text-xs ${
+                    selectedPost.status === STATUS.ACTIVE
+                      ? "bg-green-100 text-green-800"
+                      : "bg-red-100 text-red-800"
+                  }`}
+                >
+                  {selectedPost?.status}
                 </span>
               </div>
             </div>
@@ -227,8 +276,11 @@ export default function Posts() {
             className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary-500"
           >
             <option value="all">All Status</option>
-            <option value="active">Active</option>
-            <option value="disabled">Disabled</option>
+            {Object.values(STATUS).map((status) => (
+              <option key={status} value={status}>
+                <span className="capitalize">{status.toLowerCase()}</span>
+              </option>
+            ))}
           </select>
 
           {/* Sort */}
@@ -252,8 +304,12 @@ export default function Posts() {
 
       {/* Posts Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredPosts.map((post) => (
-          <div key={post.id} onClick={() => handlePostClick(post)} className="cursor-pointer">
+        {filteredPosts?.map((post) => (
+          <div
+            key={post?._id}
+            onClick={() => handlePostClick(post)}
+            className="cursor-pointer"
+          >
             <PostCard
               post={post}
               onEdit={handleEdit}
@@ -264,9 +320,11 @@ export default function Posts() {
         ))}
       </div>
 
-      {filteredPosts.length === 0 && (
+      {filteredPosts?.length === 0 && (
         <div className="text-center py-12">
-          <p className="text-gray-500">No posts found matching your criteria.</p>
+          <p className="text-gray-500">
+            No posts found matching your criteria.
+          </p>
         </div>
       )}
 

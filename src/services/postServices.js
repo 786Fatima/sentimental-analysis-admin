@@ -31,10 +31,10 @@ export const useGetAllPosts = (page = 1, limit = 10) => {
   return useQuery({
     queryKey: ["post", page, limit],
     queryFn: async () => {
-      const response = await API.get(`post/all`, {
+      const response = await API.get(`post/get-all`, {
         params: { page, limit },
       });
-      return response?.data?.data;
+      return response?.data;
     },
   });
 };
@@ -44,8 +44,8 @@ export const useGetPostById = (id) => {
   return useQuery({
     queryKey: ["post", id],
     queryFn: async () => {
-      const response = await API.get(`post/one/${id}`);
-      return response?.data?.data;
+      const response = await API.get(`post/get-one-by-id/${id}`);
+      return response?.data;
     },
     enabled: !!id,
   });
@@ -57,7 +57,7 @@ export const useUpdatePost = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      const response = await API.put(`post/update/${id}`, data);
+      const response = await API.put(`post/update-by-id/${id}`, data);
       return response.data;
     },
     onSuccess: () => {
@@ -76,7 +76,7 @@ export const useDeletePost = () => {
 
   return useMutation({
     mutationFn: async (id) => {
-      const response = await API.delete(`post/delete/${id}`);
+      const response = await API.delete(`post/delete-by-id/${id}`);
       return response.data;
     },
     onSuccess: () => {
