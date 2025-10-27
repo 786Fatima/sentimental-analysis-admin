@@ -9,10 +9,11 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import DOMPurify from "dompurify";
-import PostCard from "../components/PostCard";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { useGetAllPosts } from "../services/postServices";
-import { STATUS } from "../utils/constants";
+import PostCard from "../../components/PostCard";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useGetAllPosts } from "../../services/postServices";
+import { STATUS } from "../../utils/constants";
+import { capitalizeWords } from "../../utils/functions";
 
 export default function Posts() {
   const {
@@ -280,7 +281,7 @@ export default function Posts() {
             <option value="all">All Status</option>
             {Object.values(STATUS).map((status) => (
               <option key={status} value={status}>
-                <span className="capitalize">{status.toLowerCase()}</span>
+                <span>{capitalizeWords(status)}</span>
               </option>
             ))}
           </select>

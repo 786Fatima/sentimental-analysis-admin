@@ -9,9 +9,9 @@ import {
 } from "react-icons/fi";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { useGetPostById } from "../services/postServices";
-import useStore from "../store";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useGetPostById } from "../../services/postServices";
+import useStore from "../../store";
 
 export default function FeedbackDetail() {
   const { postId } = useParams();

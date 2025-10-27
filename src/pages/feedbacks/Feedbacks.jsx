@@ -1,7 +1,7 @@
 import { FiEye, FiHeart, FiMessageCircle } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
-import LoadingSpinner from "../components/LoadingSpinner";
-import { useGetAllPosts } from "../services/postServices";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useGetAllPosts } from "../../services/postServices";
 
 export default function Feedbacks() {
   const navigate = useNavigate();

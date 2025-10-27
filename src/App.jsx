@@ -7,12 +7,12 @@ import "react-toastify/dist/ReactToastify.css";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
-import ComposeNewPost from "./pages/ComposeNewPost";
-import Posts from "./pages/Posts";
-import Feedbacks from "./pages/Feedbacks";
-import Users from "./pages/Users";
-import UserDetail from "./pages/UserDetail";
-import FeedbackDetail from "./pages/FeedbackDetail";
+import ComposeNewPost from "./pages/posts/ComposeNewPost";
+import Posts from "./pages/posts/Posts";
+import Feedbacks from "./pages/feedbacks/Feedbacks";
+import Users from "./pages/users/Users";
+import UserDetail from "./pages/users/UserDetail";
+import FeedbackDetail from "./pages/feedbacks/FeedbackDetail";
 
 import Sidebar from "./components/Sidebar";
 import Breadcrumbs from "./components/Breadcrumbs";
