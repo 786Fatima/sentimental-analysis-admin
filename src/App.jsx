@@ -1,9 +1,10 @@
 import React, { useEffect } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Routes, Route, Navigate, useLocation } from "react-router-dom";
+import { Routes, Route, Navigate, BrowserRouter } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
+// Admin Pages
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
@@ -14,54 +15,79 @@ import Users from "./pages/users/Users";
 import UserDetail from "./pages/users/UserDetail";
 import FeedbackDetail from "./pages/feedbacks/FeedbackDetail";
 
+// User Pages
+import HomePage from "./pages/website/HomePage";
+import UserLogin from "./pages/website/UserLogin";
+import UserRegister from "./pages/website/UserRegister";
+import PostsList from "./pages/website/PostsList";
+import PostDetail from "./pages/website/PostDetail";
+
+// Layout Components
 import Sidebar from "./components/Sidebar";
 import Breadcrumbs from "./components/Breadcrumbs";
+import UserHeader from "./components/website/UserHeader";
+import UserFooter from "./components/website/UserFooter";
 import LoadingSpinner from "./components/LoadingSpinner";
 
+// Store
 import useStore from "./store";
+import { ADMIN_ROUTES, URL_PARAMS, WEBSITE_ROUTES } from "./utils/routes";
 
-function AdminRoutes() {
-  const queryClient = new QueryClient();
+const queryClient = new QueryClient();
 
-  const location = useLocation();
-  const { setLoading } = useStore();
+const {
+  HOME: ADMIN_HOME,
+  LOGIN: ADMIN_LOGIN,
+  DASHBOARD,
+  USERS,
+  USER_DETAIL,
+  POSTS,
+  COMPOSE_POST,
+  FEEDBACKS,
+  FEEDBACK_DETAIL,
+} = ADMIN_ROUTES;
 
-  useEffect(() => {
-    // Simulate loading on route change
-    setLoading(true);
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 500);
+const {
+  HOME: USER_HOME,
+  LOGIN: USER_LOGIN,
+  REGISTER: USER_REGISTER,
+  POSTS: USER_POSTS,
+  POST_DETAIL: USER_POST_DETAIL,
+} = WEBSITE_ROUTES;
 
-    return () => clearTimeout(timer);
-  }, [location.pathname, setLoading]);
+const { USER_ID, POST_ID } = URL_PARAMS;
 
+// Admin Layout Wrapper
+function AdminLayout({ children }) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Routes>
-        <Route path="/" element={<Navigate to="/dashboard" />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/compose" element={<ComposeNewPost />} />
-        <Route path="/posts" element={<Posts />} />
-        <Route path="/users" element={<Users />} />
-        <Route path="/users/:userId" element={<UserDetail />} />
-        <Route path="/feedbacks" element={<Feedbacks />} />
-        <Route
-          path="/feedback-detail/post/:postId"
-          element={<FeedbackDetail />}
-        />
-        <Route path="/login" element={<Navigate to="/dashboard" />} />
-        <Route path="/register" element={<Navigate to="/dashboard" />} />
-      </Routes>
-    </QueryClientProvider>
+    <div className="flex h-screen bg-gray-50">
+      <Sidebar />
+      <main className="flex-1 overflow-hidden">
+        <div className="h-full overflow-y-auto p-6">
+          <Breadcrumbs />
+          {children}
+        </div>
+      </main>
+    </div>
+  );
+}
+
+// User Layout Wrapper
+function UserLayout({ children }) {
+  return (
+    <div className="min-h-screen flex flex-col">
+      <UserHeader />
+      <main className="flex-1">{children}</main>
+      <UserFooter />
+    </div>
   );
 }
 
 export default function App() {
-  const { isAuthenticated, isLoading, fetchData } = useStore();
+  const { isAdminAuthenticated, isLoading, fetchData } = useStore();
 
+  // Load initial data once
   useEffect(() => {
-    // Fetch initial data
     const loadData = async () => {
       await Promise.all([
         fetchData("users"),
@@ -73,16 +99,145 @@ export default function App() {
     };
     loadData();
   }, [fetchData]);
-
-  // Auth pages layout
-  if (!isAuthenticated) {
-    return (
-      <>
+  console.log(
+    "route",
+    location.pathname,
+    window.location.pathname,
+    window.location.href,
+    isAdminAuthenticated
+  );
+  return (
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
-          <Route path="*" element={<Navigate to="/login" />} />
+          {/* ---------------------- USER ROUTES ---------------------- */}
+          <Route
+            path={USER_HOME}
+            element={
+              <UserLayout>
+                <HomePage />
+              </UserLayout>
+            }
+          />
+
+          <Route
+            path={USER_LOGIN}
+            element={
+              <UserLayout>
+                <UserLogin />
+              </UserLayout>
+            }
+          />
+          <Route
+            path={USER_REGISTER}
+            element={
+              <UserLayout>
+                <UserRegister />
+              </UserLayout>
+            }
+          />
+          <Route
+            path={USER_POSTS}
+            element={
+              <UserLayout>
+                <PostsList />
+              </UserLayout>
+            }
+          />
+          <Route
+            path={USER_POST_DETAIL + `/:${POST_ID}`}
+            element={
+              <UserLayout>
+                <PostDetail />
+              </UserLayout>
+            }
+          />
+
+          {/* ---------------------- ADMIN AUTH ROUTES ---------------------- */}
+          <Route
+            path={ADMIN_HOME}
+            element={
+              isAdminAuthenticated ? (
+                <Navigate to={DASHBOARD} />
+              ) : (
+                <Navigate to={ADMIN_LOGIN} />
+              )
+            }
+          />
+          <Route
+            path={`${ADMIN_HOME}/*`}
+            element={<Navigate to={ADMIN_LOGIN} />}
+          />
+          <Route
+            path={ADMIN_LOGIN}
+            element={
+              isAdminAuthenticated ? <Navigate to={DASHBOARD} /> : <Login />
+            }
+          />
+
+          {isAdminAuthenticated && (
+            <>
+              {/* ---------------------- ADMIN PROTECTED ROUTES ---------------------- */}
+              <Route
+                path={DASHBOARD}
+                element={
+                  <AdminLayout>
+                    <Dashboard />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={COMPOSE_POST}
+                element={
+                  <AdminLayout>
+                    <ComposeNewPost />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={POSTS}
+                element={
+                  <AdminLayout>
+                    <Posts />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={USERS}
+                element={
+                  <AdminLayout>
+                    <Users />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={USER_DETAIL + `/:${USER_ID}`}
+                element={
+                  <AdminLayout>
+                    <UserDetail />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={FEEDBACKS}
+                element={
+                  <AdminLayout>
+                    <Feedbacks />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={FEEDBACK_DETAIL + `/:${POST_ID}`}
+                element={
+                  <AdminLayout>
+                    <FeedbackDetail />
+                  </AdminLayout>
+                }
+              />
+            </>
+          )}
         </Routes>
+
         <LoadingSpinner isLoading={isLoading} />
         <ToastContainer
           position="top-right"
@@ -95,34 +250,7 @@ export default function App() {
           draggable
           pauseOnHover
         />
-      </>
-    );
-  }
-
-  // Admin layout
-  return (
-    <div className="flex h-screen bg-gray-50">
-      <Sidebar />
-      <main className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto">
-          <div className="p-6">
-            <Breadcrumbs />
-            <AdminRoutes />
-          </div>
-        </div>
-      </main>
-      <LoadingSpinner isLoading={isLoading} />
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </div>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }

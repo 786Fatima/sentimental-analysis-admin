@@ -3,15 +3,19 @@
     "id": 1,
     "title": "Success of N.E.P. in 2025",
     "description": "The National Education Policy (NEP) 2020 shows early success through the restructuring of the curriculum to the 5+3+3+4 system, improved enrollment in early childhood education and skill development programs, a higher Gross Enrollment Ratio in higher education, and enhanced student engagement due to flexibility in the Academic Bank of Credits and multiple entry/exit options.",
+    "content": "The National Education Policy (NEP) 2020 shows early success through the restructuring of the curriculum to the 5+3+3+4 system, improved enrollment in early childhood education and skill development programs, a higher Gross Enrollment Ratio in higher education, and enhanced student engagement due to flexibility in the Academic Bank of Credits and multiple entry/exit options.\n\nKey highlights include:\n• Restructured curriculum framework\n• Enhanced early childhood education\n• Flexible learning paths\n• Academic Bank of Credits system\n• Increased student engagement",
+    "author": "Dr. Rajesh Kumar",
     "images": [
       "https://images.unsplash.com/photo-1523240795612-9a054b0db644?w=800&h=600&fit=crop",
-      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1509062522246-3755977927d7?w=800&h=600&fit=crop"
     ],
     "tags": ["education", "policy", "government"],
     "userId": 1,
     "likes": 205,
     "views": 1240,
     "comments": 123,
+    "sentiment": "positive",
     "isActive": true,
     "createdAt": "2025-09-23T08:30:00Z",
     "updatedAt": "2025-09-23T10:15:00Z"
@@ -20,14 +24,18 @@
     "id": 2,
     "title": "Digital India Initiative Progress",
     "description": "Comprehensive analysis of Digital India's impact on rural connectivity and digital literacy programs across various states.",
+    "content": "Digital India initiative has made significant strides in transforming the nation's digital infrastructure. The BharatNet project continues to connect rural India, while digital literacy programs empower citizens across all age groups.\n\nMajor achievements:\n• 500,000+ villages connected\n• Digital payment adoption at 85%\n• Government services digitized\n• Enhanced cybersecurity measures",
+    "author": "Priya Sharma",
     "images": [
-      "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1518709268805-4e9042af2176?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1573164713714-d95e436ab8d6?w=800&h=600&fit=crop"
     ],
     "tags": ["technology", "digital", "india"],
     "userId": 2,
     "likes": 178,
     "views": 892,
     "comments": 67,
+    "sentiment": "positive",
     "isActive": true,
     "createdAt": "2025-09-22T14:20:00Z",
     "updatedAt": "2025-09-23T09:45:00Z"
@@ -36,6 +44,8 @@
     "id": 3,
     "title": "Climate Change Adaptation Strategies",
     "description": "Exploring innovative approaches to climate resilience in Indian agriculture and urban planning.",
+    "content": "India's approach to climate change combines traditional knowledge with modern technology. Renewable energy adoption, sustainable agriculture practices, and urban planning reforms are creating a more resilient nation.\n\nKey initiatives:\n• Solar capacity increased to 100 GW\n• Sustainable farming techniques\n• Green urban infrastructure\n• Water conservation projects",
+    "author": "Vikram Singh",
     "images": [
       "https://images.unsplash.com/photo-1569163139394-de4e4f43e4e3?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=800&h=600&fit=crop",
@@ -46,6 +56,7 @@
     "likes": 312,
     "views": 1567,
     "comments": 89,
+    "sentiment": "positive",
     "isActive": true,
     "createdAt": "2025-09-21T11:45:00Z",
     "updatedAt": "2025-09-23T08:30:00Z"
@@ -54,14 +65,18 @@
     "id": 4,
     "title": "Healthcare Reforms Implementation",
     "description": "Analysis of recent healthcare policy changes and their impact on public health infrastructure.",
+    "content": "Ayushman Bharat and digital health initiatives are revolutionizing healthcare access in India. Telemedicine platforms and improved health infrastructure are making quality healthcare more accessible.\n\nProgram highlights:\n• 500 million beneficiaries covered\n• Telemedicine consultations up 300%\n• New health & wellness centers\n• Digital health records system",
+    "author": "Dr. Anjali Gupta",
     "images": [
-      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop"
+      "https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=800&h=600&fit=crop",
+      "https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?w=800&h=600&fit=crop"
     ],
     "tags": ["healthcare", "policy", "public-health"],
     "userId": 4,
     "likes": 156,
     "views": 743,
     "comments": 45,
+    "sentiment": "positive",
     "isActive": true,
     "createdAt": "2025-09-20T16:30:00Z",
     "updatedAt": "2025-09-22T12:15:00Z"
@@ -70,6 +85,8 @@
     "id": 5,
     "title": "Economic Recovery Post-Pandemic",
     "description": "Examining India's economic recovery strategies and their effectiveness in various sectors.",
+    "content": "India's economic recovery has been remarkable, with strong growth in manufacturing, services, and technology sectors. Policy reforms and infrastructure investments are driving sustainable growth.\n\nRecovery indicators:\n• GDP growth at 7.2%\n• Manufacturing sector revival\n• Export growth of 15%\n• Employment generation initiatives",
+    "author": "Amit Joshi",
     "images": [
       "https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=800&h=600&fit=crop",
       "https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=800&h=600&fit=crop"
@@ -79,6 +96,7 @@
     "likes": 234,
     "views": 1123,
     "comments": 78,
+    "sentiment": "positive",
     "isActive": true,
     "createdAt": "2025-09-19T09:15:00Z",
     "updatedAt": "2025-09-23T07:20:00Z"

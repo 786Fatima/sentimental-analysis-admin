@@ -2,6 +2,7 @@ import { FiEye, FiHeart, FiMessageCircle } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useGetAllPosts } from "../../services/postServices";
+import { ADMIN_ROUTES } from "../../utils/routes";
 
 export default function Feedbacks() {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ export default function Feedbacks() {
   // if (postIsError) return <ErrorScreen />;
 
   const handleViewPostDetail = (postId) => {
-    navigate(`/feedback-detail/post/${postId}`);
+    navigate(`${ADMIN_ROUTES.FEEDBACK_DETAIL}/${postId}`);
   };
 
   return (

@@ -1,35 +1,36 @@
-import React, { useState, useMemo } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useMemo, useState } from "react";
 import {
-  FiUser,
-  FiMail,
-  FiPhone,
-  FiMapPin,
+  FiActivity,
+  FiArrowLeft,
+  FiBarChart,
   FiCalendar,
   FiClock,
-  FiActivity,
   FiEdit,
+  FiEye,
+  FiHeart,
   FiKey,
-  FiArrowLeft,
+  FiMail,
+  FiMapPin,
+  FiMessageCircle,
+  FiPhone,
+  FiShare2,
+  FiUser,
   FiUserCheck,
   FiUserX,
-  FiExternalLink,
-  FiHeart,
-  FiMessageCircle,
-  FiShare2,
-  FiTrendingUp,
-  FiBarChart,
-  FiEye,
 } from "react-icons/fi";
+import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import useStore from "../../store";
-import { useGetUserById } from "../../services/userServices";
-import { capitalizeWords, getStatusBadge } from "../../utils/functions";
-import LoadingSpinner from "../../components/LoadingSpinner";
 import Avatar from "../../components/Avatar";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useGetUserById } from "../../services/userServices";
+import useStore from "../../store";
+import { ADMIN_ROUTES, URL_PARAMS } from "../../utils/routes";
+import { capitalizeWords, getStatusBadge } from "../../utils/functions";
+
+const { USERS } = ADMIN_ROUTES;
 
 export default function UserDetail() {
-  const { userId } = useParams();
+  const { [URL_PARAMS.USER_ID]: userId } = useParams();
   const {
     data: userDetail,
     isLoading: userIsLoading,
@@ -107,7 +108,7 @@ export default function UserDetail() {
           The user you're looking for doesn't exist.
         </p>
         <Link
-          to="/users"
+          to={USERS}
           className="mt-4 inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700"
         >
           <FiArrowLeft className="mr-2 h-4 w-4" />
@@ -163,7 +164,7 @@ export default function UserDetail() {
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
           <Link
-            to="/users"
+            to={USERS}
             className="text-gray-600 hover:text-gray-900 p-2 hover:bg-gray-100 rounded-md transition-colors"
           >
             <FiArrowLeft className="w-5 h-5" />

@@ -1,16 +1,24 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { FiMail, FiLock, FiEye, FiEyeOff, FiUser, FiPhone } from 'react-icons/fi';
-import { FcGoogle } from 'react-icons/fc';
-import { toast } from 'react-toastify';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import {
+  FiMail,
+  FiLock,
+  FiEye,
+  FiEyeOff,
+  FiUser,
+  FiPhone,
+} from "react-icons/fi";
+import { FcGoogle } from "react-icons/fc";
+import { toast } from "react-toastify";
+import { ADMIN_ROUTES } from "../utils/routes";
 
 export default function Register() {
   const [formData, setFormData] = useState({
-    username: '',
-    email: '',
-    phone: '',
-    password: '',
-    confirmPassword: ''
+    username: "",
+    email: "",
+    phone: "",
+    password: "",
+    confirmPassword: "",
   });
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -19,29 +27,29 @@ export default function Register() {
   const handleChange = (e) => {
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value
+      [e.target.name]: e.target.value,
     });
   };
 
   const validateForm = () => {
     if (!formData.username.trim()) {
-      toast.error('Username is required');
+      toast.error("Username is required");
       return false;
     }
     if (!formData.email.trim()) {
-      toast.error('Email is required');
+      toast.error("Email is required");
       return false;
     }
     if (!formData.phone.trim()) {
-      toast.error('Phone number is required');
+      toast.error("Phone number is required");
       return false;
     }
     if (formData.password.length < 6) {
-      toast.error('Password must be at least 6 characters');
+      toast.error("Password must be at least 6 characters");
       return false;
     }
     if (formData.password !== formData.confirmPassword) {
-      toast.error('Passwords do not match');
+      toast.error("Passwords do not match");
       return false;
     }
     return true;
@@ -49,20 +57,20 @@ export default function Register() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     setIsLoading(true);
-    
+
     // Simulate registration
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Registration successful! Please login.');
-    
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    toast.success("Registration successful! Please login.");
+
     setIsLoading(false);
   };
 
   const handleGoogleRegister = () => {
-    toast.info('Google registration would require phone number');
+    toast.info("Google registration would require phone number");
   };
 
   return (
@@ -76,11 +84,14 @@ export default function Register() {
             Create your account
           </h2>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-4">
             <div>
-              <label htmlFor="username" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="username"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Username
               </label>
               <div className="mt-1 relative">
@@ -101,7 +112,10 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Email address
               </label>
               <div className="mt-1 relative">
@@ -123,7 +137,10 @@ export default function Register() {
             </div>
 
             <div>
-              <label htmlFor="phone" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="phone"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Phone Number
               </label>
               <div className="mt-1 relative">
@@ -142,9 +159,12 @@ export default function Register() {
                 />
               </div>
             </div>
-            
+
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Password
               </label>
               <div className="mt-1 relative">
@@ -154,7 +174,7 @@ export default function Register() {
                 <input
                   id="password"
                   name="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.password}
@@ -168,14 +188,21 @@ export default function Register() {
                     onClick={() => setShowPassword(!showPassword)}
                     className="text-gray-400 hover:text-gray-600 focus:outline-none"
                   >
-                    {showPassword ? <FiEyeOff className="h-4 w-4" /> : <FiEye className="h-4 w-4" />}
+                    {showPassword ? (
+                      <FiEyeOff className="h-4 w-4" />
+                    ) : (
+                      <FiEye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label
+                htmlFor="confirmPassword"
+                className="block text-sm font-medium text-gray-700"
+              >
                 Confirm Password
               </label>
               <div className="mt-1 relative">
@@ -185,7 +212,7 @@ export default function Register() {
                 <input
                   id="confirmPassword"
                   name="confirmPassword"
-                  type={showConfirmPassword ? 'text' : 'password'}
+                  type={showConfirmPassword ? "text" : "password"}
                   autoComplete="new-password"
                   required
                   value={formData.confirmPassword}
@@ -199,7 +226,11 @@ export default function Register() {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     className="text-gray-400 hover:text-gray-600 focus:outline-none"
                   >
-                    {showConfirmPassword ? <FiEyeOff className="h-4 w-4" /> : <FiEye className="h-4 w-4" />}
+                    {showConfirmPassword ? (
+                      <FiEyeOff className="h-4 w-4" />
+                    ) : (
+                      <FiEye className="h-4 w-4" />
+                    )}
                   </button>
                 </div>
               </div>
@@ -212,7 +243,7 @@ export default function Register() {
               disabled={isLoading}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? 'Creating account...' : 'Create account'}
+              {isLoading ? "Creating account..." : "Create account"}
             </button>
           </div>
 
@@ -221,7 +252,9 @@ export default function Register() {
               <div className="w-full border-t border-gray-300" />
             </div>
             <div className="relative flex justify-center text-sm">
-              <span className="px-2 bg-gray-50 text-gray-500">Or continue with</span>
+              <span className="px-2 bg-gray-50 text-gray-500">
+                Or continue with
+              </span>
             </div>
           </div>
 
@@ -238,8 +271,11 @@ export default function Register() {
 
           <div className="text-center">
             <span className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link to="/login" className="font-medium text-primary-600 hover:text-primary-500">
+              Already have an account?{" "}
+              <Link
+                to={ADMIN_ROUTES.LOGIN}
+                className="font-medium text-primary-600 hover:text-primary-500"
+              >
                 Sign in
               </Link>
             </span>

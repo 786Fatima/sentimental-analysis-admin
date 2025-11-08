@@ -11,10 +11,10 @@ import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { useGetPostById } from "../../services/postServices";
-import useStore from "../../store";
+import { ADMIN_ROUTES, URL_PARAMS } from "../../utils/routes";
 
 export default function FeedbackDetail() {
-  const { postId } = useParams();
+  const { [URL_PARAMS.POST_ID]: postId } = useParams();
   const navigate = useNavigate();
 
   const {
@@ -45,7 +45,7 @@ export default function FeedbackDetail() {
   };
 
   const handleGoBack = () => {
-    navigate("/feedbacks");
+    navigate(ADMIN_ROUTES.FEEDBACKS);
   };
 
   const handleAnalyze = () => {
