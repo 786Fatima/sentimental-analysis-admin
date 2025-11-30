@@ -11,7 +11,7 @@ import { toast } from "react-toastify";
 import DOMPurify from "dompurify";
 import PostCard from "../../components/PostCard";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useGetAllPosts } from "../../services/postServices";
+import { useGetAllPosts } from "../../services/admin-panel/postServices";
 import { STATUS } from "../../utils/constants";
 import { capitalizeWords } from "../../utils/functions";
 

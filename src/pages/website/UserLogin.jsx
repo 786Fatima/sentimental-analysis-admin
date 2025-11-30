@@ -1,60 +1,62 @@
 import React, { useState } from "react";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
 import { useNavigate, Link } from "react-router-dom";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
-import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 import useStore from "../../store";
 import PageTransition from "../../components/website/PageTransition";
 import { WEBSITE_ROUTES } from "../../utils/routes";
+import { useLoginUser } from "../../services/website/userServices";
 
 const { HOME, REGISTER, POSTS } = WEBSITE_ROUTES;
+
+const schema = yup.object().shape({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
 
 export default function UserLogin() {
   const navigate = useNavigate();
   const { userLogin } = useStore();
 
-  const [formData, setFormData] = useState({
-    email: "",
-    password: "",
-  });
+  const { mutate: loginUser, isLoading: isLoggingInUser } = useLoginUser();
+
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
+  const onSubmit = async (data) => {
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
-
-      // Check credentials (use demo credentials or validate against users.json)
-      if (formData.email && formData.password) {
-        userLogin({
-          email: formData.email,
-          name: formData.email.split("@")[0],
-        });
-        toast.success("Login successful!");
-        navigate(POSTS);
-      } else {
-        toast.error("Please fill in all fields");
-      }
+      await loginUser(data, {
+        onSuccess: (response) => {
+          if (response?.user && response?.token) {
+            userLogin({ data: response?.user, token: response?.token });
+            navigate(POSTS);
+          }
+        },
+      });
     } catch (error) {
-      toast.error("Login failed. Please try again.");
-    } finally {
-      setIsLoading(false);
+      console.error(error);
+      toast.error(error?.message || "Login failed. Please try again.");
     }
-  };
+    // finally {
 
-  const handleGoogleLogin = () => {
-    toast.info("Google login coming soon!");
+    // }
   };
 
   return (
@@ -75,7 +77,7 @@ export default function UserLogin() {
           <div className="bg-white rounded-2xl shadow-xl p-8">
             <h2 className="text-2xl font-bold text-gray-900 mb-6">Login</h2>
 
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
               {/* Email Field */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -86,13 +88,16 @@ export default function UserLogin() {
                   <input
                     type="email"
                     name="email"
-                    value={formData.email}
-                    onChange={handleChange}
+                    {...register("email")}
                     className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="you@example.com"
-                    required
                   />
                 </div>
+                {errors?.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors?.email.message}
+                  </p>
+                )}
               </div>
 
               {/* Password Field */}
@@ -105,11 +110,9 @@ export default function UserLogin() {
                   <input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    value={formData.password}
-                    onChange={handleChange}
+                    {...register("password")}
                     className="w-full pl-10 pr-12 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                     placeholder="Enter your password"
-                    required
                   />
                   <button
                     type="button"
@@ -119,6 +122,11 @@ export default function UserLogin() {
                     {showPassword ? <FiEyeOff /> : <FiEye />}
                   </button>
                 </div>
+                {errors?.password && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors?.password.message}
+                  </p>
+                )}
               </div>
 
               {/* Remember Me & Forgot Password */}
@@ -143,15 +151,15 @@ export default function UserLogin() {
               {/* Login Button */}
               <button
                 type="submit"
-                disabled={isLoading}
+                disabled={isLoggingInUser}
                 className="w-full bg-blue-600 text-white py-3 rounded-lg font-semibold hover:bg-blue-700 transition-colors disabled:bg-blue-400 disabled:cursor-not-allowed"
               >
-                {isLoading ? "Logging in..." : "Login"}
+                {isLoggingInUser ? "Logging in..." : "Login"}
               </button>
             </form>
 
             {/* Divider */}
-            <div className="relative my-6">
+            {/* <div className="relative my-6">
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-gray-300"></div>
               </div>
@@ -160,17 +168,17 @@ export default function UserLogin() {
                   Or continue with
                 </span>
               </div>
-            </div>
+            </div> */}
 
             {/* Google Login */}
-            <button
+            {/* <button
               type="button"
               onClick={handleGoogleLogin}
               className="w-full flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition-colors"
             >
               <FcGoogle className="text-2xl" />
               Continue with Google
-            </button>
+            </button> */}
 
             {/* Register Link */}
             <p className="mt-6 text-center text-gray-600">
@@ -191,13 +199,6 @@ export default function UserLogin() {
               >
                 ← Back to Home
               </Link>
-            </p>
-          </div>
-
-          {/* Demo Credentials */}
-          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
-              <strong>Demo:</strong> Use any email and password to login
             </p>
           </div>
         </div>

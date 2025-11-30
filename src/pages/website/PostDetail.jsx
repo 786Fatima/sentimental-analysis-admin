@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import {
   FiHeart,
@@ -17,9 +17,13 @@ import {
 } from "react-icons/fi";
 import { FaFacebook, FaTwitter, FaLinkedin, FaWhatsapp } from "react-icons/fa";
 import { toast } from "react-toastify";
+import DOMPurify from "dompurify";
 import useStore from "../../store";
 import PageTransition from "../../components/website/PageTransition";
-import { WEBSITE_ROUTES } from "../../utils/routes";
+import { URL_PARAMS, WEBSITE_ROUTES } from "../../utils/routes";
+import { useGetPostById } from "../../services/website/postServices";
+import LoadingSpinner from "../../components/LoadingSpinner";
+import { useUpdatePostViewById } from "../../services/website/feedbackServices";
 
 const { LOGIN, POSTS } = WEBSITE_ROUTES;
 
@@ -82,12 +86,23 @@ function PostImageCarousel({ images, postTitle }) {
 }
 
 export default function PostDetail() {
-  const { id } = useParams();
+  const { [URL_PARAMS.POST_ID]: postId } = useParams();
   const navigate = useNavigate();
-  const { posts, comments, interactions, isUserAuthenticated, userInfo } =
-    useStore();
+  const {
+    comments,
+    interactions,
+    isUserAuthenticated,
+    user: userInfo,
+  } = useStore();
+  const {
+    data: postDetail,
+    isLoading: postIsLoading,
+    isError: postIsError,
+  } = useGetPostById(postId);
 
-  const [post, setPost] = useState(null);
+  const { mutate: updatePostView, isPending: isPostViewUpdating } =
+    useUpdatePostViewById();
+
   const [postComments, setPostComments] = useState([]);
   const [newComment, setNewComment] = useState("");
   const [isLiked, setIsLiked] = useState(false);
@@ -98,18 +113,23 @@ export default function PostDetail() {
   // Scroll to top when component mounts or ID changes
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-  }, [id]);
+  }, [postId]);
 
   useEffect(() => {
-    // Find post
-    const foundPost = posts.find((p) => p.id === parseInt(id));
-    if (foundPost) {
-      setPost(foundPost);
-
+    if (!postIsLoading && postDetail) {
       // Get post stats
       const postInteractions = interactions.filter(
-        (i) => i.postId === parseInt(id)
+        (i) => i.postId === parseInt(1)
       );
+
+      console.log("first", userInfo);
+      if (
+        postDetail?.feedback?.find((fb) => fb?.userId === userInfo?.id) ===
+        undefined
+      ) {
+        updatePostView({ id: postId });
+      }
+
       const likes = postInteractions.filter((i) => i.type === "like").length;
       setLikesCount(likes);
 
@@ -121,13 +141,15 @@ export default function PostDetail() {
         setIsLiked(userLiked);
       }
     }
-  }, [id, posts, interactions, isUserAuthenticated, userInfo]);
+  }, [postIsLoading, postDetail, interactions, isUserAuthenticated, userInfo]);
 
-  useEffect(() => {
-    // Get comments for this post
-    const postCommentsData = comments.filter((c) => c.postId === parseInt(id));
-    setPostComments(postCommentsData);
-  }, [id, comments]);
+  // useEffect(() => {
+  //   // Get comments for this post
+  //   const postCommentsData = comments.filter((c) => c.postId === parseInt(id));
+  //   setPostComments(postCommentsData);
+  // }, [id, comments]);
+
+  if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
 
   const handleLike = () => {
     if (!isUserAuthenticated) {
@@ -158,7 +180,7 @@ export default function PostDetail() {
     // Add comment (in real app, this would be an API call)
     const comment = {
       id: Date.now(),
-      postId: parseInt(id),
+      postId: parseInt(1),
       userId: userInfo.id,
       userName: userInfo.name,
       content: newComment,
@@ -178,7 +200,7 @@ export default function PostDetail() {
     }
 
     const url = window.location.href;
-    const text = post.title;
+    const text = postDetail?.title;
 
     let shareUrl = "";
     switch (platform) {
@@ -207,7 +229,7 @@ export default function PostDetail() {
     }
 
     window.open(shareUrl, "_blank", "width=600,height=400");
-    toast.success("Sharing post...");
+    toast.success("Sharing postDetail?...");
   };
 
   const copyLink = () => {
@@ -238,7 +260,7 @@ export default function PostDetail() {
     return Math.floor(seconds) + " seconds ago";
   };
 
-  if (!post) {
+  if (!postDetail) {
     return (
       <PageTransition>
         <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -254,9 +276,9 @@ export default function PostDetail() {
   }
 
   const sentimentColor =
-    post.sentiment === "positive"
+    postDetail?.sentiment === "positive"
       ? "text-green-600 bg-green-50"
-      : post.sentiment === "negative"
+      : postDetail?.sentiment === "negative"
       ? "text-red-600 bg-red-50"
       : "text-yellow-600 bg-yellow-50";
 
@@ -279,8 +301,8 @@ export default function PostDetail() {
               {/* Left Side - Image */}
               <div className="lg:w-3/5 bg-black">
                 <PostImageCarousel
-                  images={post.images}
-                  postTitle={post.title}
+                  images={postDetail?.images}
+                  postTitle={postDetail?.title}
                 />
               </div>
 
@@ -289,27 +311,29 @@ export default function PostDetail() {
                 {/* Post Header */}
                 <div className="p-4 border-b border-gray-200 flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {post.author ? post.author[0].toUpperCase() : "A"}
+                    {postDetail?.author
+                      ? postDetail?.author[0]?.toUpperCase()
+                      : "A"}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">
-                      {post.author || "Anonymous"}
+                      {postDetail?.author || "Anonymous"}
                     </h3>
                     <p className="text-xs text-gray-500">
-                      {timeAgo(post.createdAt)}
+                      {timeAgo(postDetail?.createdAt)}
                     </p>
                   </div>
                   <div
                     className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                      post.sentiment === "positive"
+                      postDetail?.sentiment === "positive"
                         ? "bg-green-50 text-green-600"
-                        : post.sentiment === "negative"
+                        : postDetail?.sentiment === "negative"
                         ? "bg-red-50 text-red-600"
                         : "bg-yellow-50 text-yellow-600"
                     }`}
                   >
                     <FiTrendingUp className="w-3 h-3" />
-                    <span className="capitalize">{post.sentiment}</span>
+                    <span className="capitalize">{postDetail?.sentiment}</span>
                   </div>
                 </div>
 
@@ -318,16 +342,21 @@ export default function PostDetail() {
                   {/* Post Caption */}
                   <div className="mb-6">
                     <h1 className="text-xl font-bold text-gray-900 mb-2">
-                      {post.title}
+                      {postDetail?.title}
                     </h1>
-                    <p className="text-gray-700 whitespace-pre-wrap">
-                      {post.description}
-                    </p>
+                    <p
+                      className="text-gray-700 whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: DOMPurify.sanitize(
+                          postDetail?.description || ""
+                        ),
+                      }}
+                    />
 
                     {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
+                    {postDetail?.tags && postDetail?.tags.length > 0 && (
                       <div className="flex flex-wrap gap-1.5 mt-3">
-                        {post.tags.map((tag, index) => (
+                        {postDetail?.tags.map((tag, index) => (
                           <span
                             key={index}
                             className="text-blue-600 text-sm font-medium hover:underline cursor-pointer"
@@ -340,9 +369,9 @@ export default function PostDetail() {
 
                     {/* Stats */}
                     <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                      <span>{post.views || 0} views</span>
+                      <span>{postDetail?.views || 0} views</span>
                       <span>•</span>
-                      <span>{timeAgo(post.createdAt)}</span>
+                      <span>{timeAgo(postDetail?.createdAt)}</span>
                     </div>
                   </div>
 
@@ -358,7 +387,7 @@ export default function PostDetail() {
                       </p>
                     ) : (
                       <div className="space-y-4">
-                        {postComments.map((comment) => (
+                        {postComments?.map((comment) => (
                           <div key={comment.id} className="flex gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-sm">
                               {comment.userName
@@ -477,14 +506,14 @@ export default function PostDetail() {
                 <h3 className="font-semibold text-gray-700 mb-1">
                   Description
                 </h3>
-                <p className="text-gray-600">{post.description}</p>
+                <p className="text-gray-600">{postDetail?.description}</p>
               </div>
 
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {post.tags &&
-                    post.tags.map((tag, index) => (
+                  {postDetail?.tags &&
+                    postDetail?.tags.map((tag, index) => (
                       <span
                         key={index}
                         className="px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full"
@@ -498,10 +527,10 @@ export default function PostDetail() {
               <div className="flex items-center gap-4 text-sm text-gray-500">
                 <div className="flex items-center gap-1">
                   <FiClock className="w-4 h-4" />
-                  <span>{timeAgo(post.createdAt)}</span>
+                  <span>{timeAgo(postDetail?.createdAt)}</span>
                 </div>
                 <span>•</span>
-                <span>{post.views || 0} views</span>
+                <span>{postDetail?.views || 0} views</span>
               </div>
             </div>
           </div>

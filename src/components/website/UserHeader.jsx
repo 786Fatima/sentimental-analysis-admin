@@ -9,7 +9,7 @@ const { HOME, POSTS, LOGIN } = WEBSITE_ROUTES;
 export default function UserHeader() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { isUserAuthenticated, userInfo, userLogout } = useStore();
+  const { isUserAuthenticated, user, userLogout } = useStore();
 
   const handleLogout = () => {
     userLogout();
@@ -67,7 +67,7 @@ export default function UserHeader() {
                 <div className="hidden md:flex items-center gap-2 text-gray-700">
                   <FiUser className="w-5 h-5" />
                   <span className="font-medium">
-                    {userInfo?.name || "User"}
+                    {user?.fullName || "User"}
                   </span>
                 </div>
                 <button

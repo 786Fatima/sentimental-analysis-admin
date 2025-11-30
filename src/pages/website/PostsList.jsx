@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
+import DOMPurify from "dompurify";
 import {
   FiSearch,
   FiHeart,
@@ -13,8 +14,10 @@ import {
 import useStore from "../../store";
 import PageTransition from "../../components/website/PageTransition";
 import { WEBSITE_ROUTES } from "../../utils/routes";
+import { useGetAllPosts } from "../../services/website/postServices";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
-const { LOGIN } = WEBSITE_ROUTES;
+const { LOGIN, POST_DETAIL } = WEBSITE_ROUTES;
 
 // Image Carousel Component
 function ImageCarousel({ images, postTitle }) {
@@ -79,7 +82,13 @@ function ImageCarousel({ images, postTitle }) {
 
 export default function PostsList() {
   const navigate = useNavigate();
-  const { posts, tags, interactions, isUserAuthenticated } = useStore();
+  const { tags, interactions, isUserAuthenticated } = useStore();
+
+  const {
+    data: posts,
+    isLoading: postIsLoading,
+    isError: postIsError,
+  } = useGetAllPosts();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -87,33 +96,39 @@ export default function PostsList() {
   const [filteredPosts, setFilteredPosts] = useState([]);
 
   useEffect(() => {
-    let result = [...posts];
+    if (!postIsLoading && posts) {
+      let result = [...posts];
 
-    // Filter by search
-    if (searchQuery) {
-      result = result.filter(
-        (post) =>
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.content.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+      // Filter by search
+      if (searchQuery) {
+        result = result.filter(
+          (post) =>
+            post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            post.content.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+      }
+
+      // Filter by tag
+      if (selectedTag !== "all") {
+        result = result.filter(
+          (post) => post.tags && post.tags.includes(selectedTag)
+        );
+      }
+
+      // Sort
+      if (sortBy === "recent") {
+        result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      } else if (sortBy === "popular") {
+        result.sort((a, b) => b.likes - a.likes);
+      }
+
+      setFilteredPosts(result);
+    } else {
+      setFilteredPosts([]);
     }
+  }, [posts, postIsLoading, searchQuery, selectedTag, sortBy]);
 
-    // Filter by tag
-    if (selectedTag !== "all") {
-      result = result.filter(
-        (post) => post.tags && post.tags.includes(selectedTag)
-      );
-    }
-
-    // Sort
-    if (sortBy === "recent") {
-      result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-    } else if (sortBy === "popular") {
-      result.sort((a, b) => b.likes - a.likes);
-    }
-
-    setFilteredPosts(result);
-  }, [posts, searchQuery, selectedTag, sortBy]);
+  if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
 
   const getPostStats = (postId) => {
     const postInteractions = interactions.filter((i) => i.postId === postId);
@@ -125,7 +140,7 @@ export default function PostsList() {
   };
 
   const handlePostClick = (postId) => {
-    navigate(`/user/post/${postId}`);
+    navigate(`${POST_DETAIL}/${postId}`);
   };
 
   const timeAgo = (date) => {
@@ -222,14 +237,14 @@ export default function PostsList() {
           </div>
 
           {/* Posts Grid */}
-          {filteredPosts.length === 0 ? (
+          {filteredPosts?.length === 0 ? (
             <div className="text-center py-12">
               <p className="text-gray-500 text-lg">No posts found</p>
             </div>
           ) : (
             <div className="max-w-2xl mx-auto space-y-6">
-              {filteredPosts.map((post) => {
-                const stats = getPostStats(post.id);
+              {filteredPosts?.map((post) => {
+                const stats = getPostStats(post?._id);
                 const sentimentColor =
                   post.sentiment === "positive"
                     ? "text-green-600"
@@ -239,20 +254,22 @@ export default function PostsList() {
 
                 return (
                   <div
-                    key={post.id}
+                    key={post?._id}
                     className="bg-white rounded-lg shadow-md hover:shadow-xl transition-shadow overflow-hidden border border-gray-200"
                   >
                     {/* Post Header */}
                     <div className="p-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {post.author ? post.author[0].toUpperCase() : "A"}
+                        {post.user?.fullName
+                          ? post?.user?.fullName?.toUpperCase()
+                          : "A"}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">
-                          {post.author || "Anonymous"}
+                          {post.user?.fullName}
                         </h3>
                         <p className="text-xs text-gray-500">
-                          {timeAgo(post.createdAt)}
+                          {timeAgo(post?.createdAt)}
                         </p>
                       </div>
                       <div
@@ -271,12 +288,12 @@ export default function PostsList() {
 
                     {/* Image Carousel */}
                     <div
-                      onClick={() => handlePostClick(post.id)}
+                      onClick={() => handlePostClick(post?._id)}
                       className="cursor-pointer"
                     >
                       <ImageCarousel
-                        images={post.images}
-                        postTitle={post.title}
+                        images={post?.images || []}
+                        postTitle={post?.title}
                       />
                     </div>
 
@@ -295,7 +312,7 @@ export default function PostsList() {
                           <FiHeart className="w-6 h-6" />
                         </button>
                         <button
-                          onClick={() => handlePostClick(post.id)}
+                          onClick={() => handlePostClick(post?._id)}
                           className="text-gray-700 hover:text-blue-600 transition-colors"
                         >
                           <FiMessageCircle className="w-6 h-6" />
@@ -316,27 +333,30 @@ export default function PostsList() {
                       {/* Likes Count */}
                       <div className="mb-2">
                         <p className="font-semibold text-sm">
-                          {post.likes} likes
+                          {post?.feedbackStats?.totalLikes} likes
                         </p>
                       </div>
 
                       {/* Post Title & Description */}
                       <div className="mb-2">
                         <h4
-                          onClick={() => handlePostClick(post.id)}
+                          onClick={() => handlePostClick(post?._id)}
                           className="font-semibold text-gray-900 mb-1 cursor-pointer hover:text-blue-600"
                         >
-                          {post.title}
+                          {post?.title}
                         </h4>
-                        <p className="text-gray-700 text-sm line-clamp-2">
-                          {post.description}
-                        </p>
+                        <p
+                          className="text-gray-700 text-sm line-clamp-2"
+                          dangerouslySetInnerHTML={{
+                            __html: DOMPurify.sanitize(post?.description || ""),
+                          }}
+                        />
                       </div>
 
                       {/* Comments Preview */}
                       {stats.comments > 0 && (
                         <button
-                          onClick={() => handlePostClick(post.id)}
+                          onClick={() => handlePostClick(post?._id)}
                           className="text-gray-500 text-sm hover:text-gray-700"
                         >
                           View all {stats.comments} comments
@@ -344,9 +364,9 @@ export default function PostsList() {
                       )}
 
                       {/* Tags */}
-                      {post.tags && post.tags.length > 0 && (
+                      {post?.tags && post?.tags?.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
-                          {post.tags.map((tag, index) => (
+                          {post?.tags?.map((tag, index) => (
                             <span
                               key={index}
                               className="text-blue-600 text-sm font-medium hover:underline cursor-pointer"

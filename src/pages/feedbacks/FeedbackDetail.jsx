@@ -10,7 +10,7 @@ import {
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useGetPostById } from "../../services/postServices";
+import { useGetPostById } from "../../services/admin-panel/postServices";
 import { ADMIN_ROUTES, URL_PARAMS } from "../../utils/routes";
 
 export default function FeedbackDetail() {

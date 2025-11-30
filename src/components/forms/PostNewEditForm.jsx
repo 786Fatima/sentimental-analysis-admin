@@ -22,7 +22,7 @@ import {
   useCreatePost,
   useGetPostById,
   useUpdatePost,
-} from "../../services/postServices";
+} from "../../services/admin-panel/postServices";
 
 const schema = yup.object().shape({
   title: yup.string().required("Title is required"),
@@ -48,7 +48,6 @@ export default function PostNewEditForm() {
     handleSubmit,
     formState: { errors },
     setValue,
-    watch,
   } = useForm({
     resolver: yupResolver(schema),
     defaultValues: {
@@ -183,9 +182,6 @@ export default function PostNewEditForm() {
   if (postIsLoading) return <LoadingScreen />;
 
   if (postIsError) return <ErrorScreen />;
-
-  const values = watch();
-  console.log("first", values, errors);
 
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">

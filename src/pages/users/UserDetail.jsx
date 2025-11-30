@@ -22,7 +22,7 @@ import { Link, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import Avatar from "../../components/Avatar";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useGetUserById } from "../../services/userServices";
+import { useGetUserById } from "../../services/admin-panel/userServices";
 import useStore from "../../store";
 import { ADMIN_ROUTES, URL_PARAMS } from "../../utils/routes";
 import { capitalizeWords, getStatusBadge } from "../../utils/functions";

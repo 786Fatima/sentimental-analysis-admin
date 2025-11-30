@@ -1,7 +1,7 @@
 import { FiEye, FiHeart, FiMessageCircle } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useGetAllPosts } from "../../services/postServices";
+import { useGetAllPosts } from "../../services/admin-panel/postServices";
 import { ADMIN_ROUTES } from "../../utils/routes";
 
 export default function Feedbacks() {

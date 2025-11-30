@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
-import API from "./Api";
+import API from "../Api";
 import { toast } from "react-toastify";
 
 // // Create a new user
@@ -9,7 +9,7 @@ import { toast } from "react-toastify";
 
 //   return useMutation({
 //     mutationFn: async (data) => {
-//       const response = await API.post(`user/create`, data);
+//       const response = await API.post(`/admin-panel/user/create`, data);
 //       return response.data;
 //     },
 //     onSuccess: () => {
@@ -31,7 +31,7 @@ export const useGetAllUsers = (page = 1, limit = 10) => {
   return useQuery({
     queryKey: ["user", page, limit],
     queryFn: async () => {
-      const response = await API.get(`user/get-all`, {
+      const response = await API.get(`/admin-panel/user/get-all`, {
         params: { page, limit },
       });
       return response?.data;
@@ -44,7 +44,7 @@ export const useGetUserById = (id) => {
   return useQuery({
     queryKey: ["user", id],
     queryFn: async () => {
-      const response = await API.get(`user/get-one-by-id/${id}`);
+      const response = await API.get(`/admin-panel/user/get-one-by-id/${id}`);
       return response?.data;
     },
     enabled: !!id,
@@ -57,7 +57,10 @@ export const useUpdateUser = () => {
 
   return useMutation({
     mutationFn: async ({ id, data }) => {
-      const response = await API.put(`user/update-by-id/${id}`, data);
+      const response = await API.put(
+        `/admin-panel/user/update-by-id/${id}`,
+        data
+      );
       return response.data;
     },
     onSuccess: () => {
@@ -76,7 +79,7 @@ export const useDeleteUser = () => {
 
   return useMutation({
     mutationFn: async (id) => {
-      const response = await API.delete(`user/delete-by-id/${id}`);
+      const response = await API.delete(`/admin-panel/user/delete-by-id/${id}`);
       return response.data;
     },
     onSuccess: () => {

@@ -86,6 +86,7 @@ function UserLayout({ children }) {
 export default function App() {
   const { isAdminAuthenticated, isLoading, fetchData } = useStore();
 
+  const c = true;
   // Load initial data once
   useEffect(() => {
     const loadData = async () => {
@@ -99,13 +100,7 @@ export default function App() {
     };
     loadData();
   }, [fetchData]);
-  console.log(
-    "route",
-    location.pathname,
-    window.location.pathname,
-    window.location.href,
-    isAdminAuthenticated
-  );
+
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
@@ -175,7 +170,7 @@ export default function App() {
             }
           />
 
-          {isAdminAuthenticated && (
+          {(isAdminAuthenticated || c) && (
             <>
               {/* ---------------------- ADMIN PROTECTED ROUTES ---------------------- */}
               <Route

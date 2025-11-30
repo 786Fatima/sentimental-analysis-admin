@@ -18,7 +18,8 @@ export const capitalizeWords = (input) => {
         })
         .join("")
     )
-    .join(" ");
+    .join(" ")
+    .replaceAll("_", " ");
 };
 
 export const getStatusBadge = (status) => {
@@ -54,6 +55,17 @@ export const getStatusBadge = (status) => {
   //     Offline
   //   </span>
   // );
+};
+
+export const getAPIRequestHeaders = (token = null) => {
+  const headerValue = {
+    "Content-Type": "application/json",
+  };
+  if (!token) return headerValue;
+  return {
+    ...headerValue,
+    Authorization: `Bearer ${token}`,
+  };
 };
 
 // export const getRoleBadge = (role) => {

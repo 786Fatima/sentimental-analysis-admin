@@ -1,8 +1,6 @@
 import axios from "axios";
-import { getAdminToken } from "./authToken";
 
-export const API_BASE_URL =
-  "http://127.0.0.1:5000/api/v1/sentimental-analysis/admin-panel";
+export const API_BASE_URL = "http://127.0.0.1:5000/api/v1/sentimental-analysis";
 
 const API = axios.create({
   baseURL: API_BASE_URL,
@@ -11,18 +9,9 @@ const API = axios.create({
   },
 });
 
-// fallback token for development (use localStorage in production)
-const FALLBACK_TOKEN =
-  "eyJhZG1pbl9pZCI6IjY4ZmE2NjFjNDcxZjA3MjEzNmZiOWZmZSJ9.aPpmPg.SuxE1GpA-9BPljb7hpiB8jAoElc";
-
 // Attach Authorization header to every request using token from localStorage
 API.interceptors.request.use(
   (config) => {
-    const token = getAdminToken() || FALLBACK_TOKEN;
-    if (token) {
-      config.headers = config.headers || {};
-      config.headers.Authorization = `Bearer ${token}`;
-    }
     return config;
   },
   (error) => Promise.reject(error)

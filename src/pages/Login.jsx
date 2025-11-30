@@ -1,47 +1,61 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { yupResolver } from "@hookform/resolvers/yup";
+import { useForm } from "react-hook-form";
+import * as yup from "yup";
 import { FiMail, FiLock, FiEye, FiEyeOff } from "react-icons/fi";
 import { FcGoogle } from "react-icons/fc";
 import { toast } from "react-toastify";
 import useStore from "../store";
 import { ADMIN_ROUTES } from "../utils/routes";
+import { useLoginAdmin } from "../services/admin-panel/adminServices";
+
+const schema = yup.object().shape({
+  email: yup.string().email("Invalid email").required("Email is required"),
+  password: yup
+    .string()
+    .min(6, "Password must be at least 6 characters")
+    .required("Password is required"),
+});
+
+const { DASHBOARD } = ADMIN_ROUTES;
 
 export default function Login() {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    email: "admin@co.in",
-    password: "admin1234",
-  });
+  const { mutate: loginAdmin, isLoading: isLoggingInAdmin } = useLoginAdmin();
+  const { adminLogin } = useStore();
+
   const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const { login } = useStore();
 
-  const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setIsLoading(true);
-
-    // Fake login validation
-    if (formData.email === "admin@co.in" && formData.password === "admin1234") {
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-      login({ email: formData.email, role: "admin" });
-      toast.success("Login successful!");
-      navigate(ADMIN_ROUTES.DASHBOARD);
-    } else {
-      toast.error("Invalid credentials. Use admin@co.in / admin1234");
+  const onSubmit = async (data) => {
+    try {
+      await loginAdmin(data, {
+        onSuccess: (response) => {
+          if (response?.user && response?.token) {
+            adminLogin({ data: response?.user, token: response?.token });
+            navigate(DASHBOARD);
+          }
+        },
+      });
+    } catch (error) {
+      console.error(error);
+      toast.error(error?.message || "Login failed. Please try again.");
     }
+    // finally {
 
-    setIsLoading(false);
-  };
-
-  const handleGoogleLogin = () => {
-    toast.info("Google login would be implemented here");
+    // }
   };
 
   return (
@@ -54,12 +68,9 @@ export default function Login() {
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
             Sign in to Admin Panel
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Use admin@co.in / admin1234 for demo
-          </p>
         </div>
 
-        <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
+        <form className="mt-8 space-y-6" onSubmit={handleSubmit(onSubmit)}>
           <div className="space-y-4">
             <div>
               <label
@@ -77,12 +88,15 @@ export default function Login() {
                   name="email"
                   type="email"
                   autoComplete="email"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
+                  {...register("email")}
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Email address"
                 />
+                {errors?.email && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors?.email.message}
+                  </p>
+                )}
               </div>
             </div>
 
@@ -102,9 +116,7 @@ export default function Login() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  required
-                  value={formData.password}
-                  onChange={handleChange}
+                  {...register("email")}
                   className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Password"
                 />
@@ -121,6 +133,11 @@ export default function Login() {
                     )}
                   </button>
                 </div>
+                {errors?.password && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors?.password.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -128,14 +145,14 @@ export default function Login() {
           <div>
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isLoggingInAdmin}
               className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary-600 hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary-500 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? "Signing in..." : "Sign in"}
+              {isLoggingInAdmin ? "Signing in..." : "Sign in"}
             </button>
           </div>
 
-          <div className="relative">
+          {/* <div className="relative">
             <div className="absolute inset-0 flex items-center">
               <div className="w-full border-t border-gray-300" />
             </div>
@@ -155,9 +172,9 @@ export default function Login() {
               <FcGoogle className="w-5 h-5 mr-2" />
               Sign in with Google
             </button>
-          </div>
+          </div> */}
 
-          <div className="text-center">
+          {/* <div className="text-center">
             <span className="text-sm text-gray-600">
               Don't have an account?{" "}
               <Link
@@ -167,7 +184,7 @@ export default function Login() {
                 Sign up
               </Link>
             </span>
-          </div>
+          </div> */}
         </form>
       </div>
     </div>

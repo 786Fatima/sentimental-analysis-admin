@@ -11,21 +11,57 @@ const getStoredAuth = () => {
   }
 };
 
-const setStoredAuth = (admin, isAdminAuthenticated) => {
+const setStoredAuth = ({
+  data = null,
+  accessToken = null,
+  isAuthenticated = false,
+  isUser = false,
+  isAdmin = false,
+}) => {
   try {
     const previousAuth = getStoredAuth() || {};
-    localStorage.setItem(
-      "senti-auth",
-      JSON.stringify({ ...previousAuth, admin, isAdminAuthenticated })
-    );
+    if (isAdmin) {
+      localStorage.setItem(
+        "senti-auth",
+        JSON.stringify({
+          ...previousAuth,
+          admin: data,
+          isAdminAuthenticated: isAuthenticated,
+          adminAccessToken: accessToken,
+        })
+      );
+    }
+    if (isUser) {
+      localStorage.setItem(
+        "senti-auth",
+        JSON.stringify({
+          ...previousAuth,
+          user: data,
+          isUserAuthenticated: isAuthenticated,
+          userAccessToken: accessToken,
+        })
+      );
+    }
   } catch (error) {
     console.warn("Failed to store auth data:", error);
   }
 };
 
-const clearStoredAuth = () => {
+const clearStoredAuth = ({ clearAdmin = false, clearUser = false }) => {
   try {
-    localStorage.removeItem("senti-auth");
+    const previousAuth = getStoredAuth() || {};
+    if (previousAuth === null) return;
+    if (clearAdmin) {
+      delete previousAuth.admin;
+      delete previousAuth.isAdminAuthenticated;
+      delete previousAuth.adminAccessToken;
+    }
+    if (clearUser) {
+      delete previousAuth.user;
+      delete previousAuth.isUserAuthenticated;
+      delete previousAuth.userAccessToken;
+    }
+    localStorage.setItem("senti-auth", JSON.stringify(previousAuth));
   } catch (error) {
     console.warn("Failed to clear auth data:", error);
   }
@@ -40,11 +76,12 @@ const useStore = create(
       // Admin Auth state - Initialize from localStorage
       user: storedAuth?.user || null,
       admin: storedAuth?.admin || null,
-      isAdminAuthenticated: storedAuth?.isAdminAuthenticated || false,
 
-      // User Auth state (for user-facing pages)
-      userInfo: null,
-      isUserAuthenticated: false,
+      isAdminAuthenticated: storedAuth?.isAdminAuthenticated || false,
+      isUserAuthenticated: storedAuth?.isUserAuthenticated || false,
+
+      adminAccessToken: storedAuth?.adminAccessToken || null,
+      userAccessToken: storedAuth?.userAccessToken || null,
 
       isLoading: false,
 
@@ -60,22 +97,59 @@ const useStore = create(
       currentPage: "dashboard",
 
       // Admin Actions
-      login: (userData) => {
-        console.log("first", userData, localStorage.getItem("senti-auth"));
-        set({ admin: userData, isAdminAuthenticated: true });
-        setStoredAuth(userData, true);
+      login: (adminData, adminAccessToken) => {
+        if (!adminData || !adminAccessToken) return;
+        set({ admin: adminData, isAdminAuthenticated: true, adminAccessToken });
+        setStoredAuth({
+          data: adminData,
+          isAuthenticated: true,
+          accessToken: adminAccessToken,
+          isAdmin: true,
+        });
       },
       logout: () => {
-        set({ admin: null, isAdminAuthenticated: false });
-        clearStoredAuth();
+        set({
+          admin: null,
+          adminAccessToken: null,
+          isAdminAuthenticated: false,
+        });
+        clearStoredAuth({ clearAdmin: true });
+      },
+
+      // Admin Actions
+      adminLogin: ({ data: adminData, token: adminAccessToken }) => {
+        if (!adminData || !adminAccessToken) return;
+        set({ admin: adminData, adminAccessToken, isAdminAuthenticated: true });
+        setStoredAuth({
+          data: adminData,
+          isAuthenticated: true,
+          accessToken: adminAccessToken,
+          isAdmin: true,
+        });
+      },
+      adminLogout: () => {
+        set({
+          admin: null,
+          adminAccessToken: null,
+          isAdminAuthenticated: false,
+        });
+        clearStoredAuth({ clearAdmin: true });
       },
 
       // User Actions
-      userLogin: (userData) => {
-        set({ userInfo: userData, isUserAuthenticated: true });
+      userLogin: ({ data: userData, token: userAccessToken }) => {
+        if (!userData || !userAccessToken) return;
+        set({ user: userData, userAccessToken, isUserAuthenticated: true });
+        setStoredAuth({
+          data: userData,
+          isAuthenticated: true,
+          accessToken: userAccessToken,
+          isUser: true,
+        });
       },
       userLogout: () => {
-        set({ userInfo: null, isUserAuthenticated: false });
+        set({ user: null, userAccessToken: null, isUserAuthenticated: false });
+        clearStoredAuth({ clearUser: true });
       },
 
       setLoading: (loading) => set({ isLoading: loading }),
@@ -155,8 +229,9 @@ const useStore = create(
       partialize: (state) => ({
         user: state.user,
         admin: state.admin,
+        userAccessToken: state.userAccessToken,
+        adminAccessToken: state.adminAccessToken,
         isAdminAuthenticated: state.isAdminAuthenticated,
-        userInfo: state.userInfo,
         isUserAuthenticated: state.isUserAuthenticated,
         sidebarCollapsed: state.sidebarCollapsed,
       }),

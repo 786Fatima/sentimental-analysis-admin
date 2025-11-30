@@ -15,11 +15,12 @@ import {
 } from "react-icons/fi";
 import { toast } from "react-toastify";
 import useStore from "../../store";
-import { useGetAllUsers } from "../../services/userServices";
+import { useGetAllUsers } from "../../services/admin-panel/userServices";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { STATUS } from "../../utils/constants";
 import { capitalizeWords, getStatusBadge } from "../../utils/functions";
 import Avatar from "../../components/Avatar";
+import { ADMIN_ROUTES } from "../../utils/routes";
 
 export default function Users() {
   const { setUsers } = useStore();
@@ -230,7 +231,7 @@ export default function Users() {
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                     <div className="flex items-center space-x-2">
                       <Link
-                        to={`/users/${user?._id}`}
+                        to={`${ADMIN_ROUTES.USER_DETAIL}/${user?._id}`}
                         className="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-md transition-colors"
                         title="View Details"
                       >
