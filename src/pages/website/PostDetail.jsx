@@ -1,29 +1,31 @@
-import React, { useState, useEffect, use } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
+import DOMPurify from "dompurify";
+import { useEffect, useState } from "react";
+import { FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import {
-  FiHeart,
-  FiMessageCircle,
-  FiShare2,
   FiArrowLeft,
-  FiSend,
-  FiClock,
-  FiUser,
-  FiTrendingUp,
-  FiCopy,
   FiCheck,
   FiChevronLeft,
   FiChevronRight,
-  FiBookmark,
+  FiClock,
+  FiCopy,
+  FiHeart,
+  FiMessageCircle,
+  FiShare2,
+  FiTrendingUp,
 } from "react-icons/fi";
-import { FaFacebook, FaTwitter, FaLinkedin, FaWhatsapp } from "react-icons/fa";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import DOMPurify from "dompurify";
-import useStore from "../../store";
-import PageTransition from "../../components/website/PageTransition";
-import { URL_PARAMS, WEBSITE_ROUTES } from "../../utils/routes";
-import { useGetPostById } from "../../services/website/postServices";
 import LoadingSpinner from "../../components/LoadingSpinner";
-import { useUpdatePostViewById } from "../../services/website/feedbackServices";
+import PageTransition from "../../components/website/PageTransition";
+import {
+  useGetPostById,
+  useUpdatePostCommentById,
+  useUpdatePostLikeById,
+  useUpdatePostViewById,
+} from "../../services/website/postServices";
+import useStore from "../../store";
+import { URL_PARAMS, WEBSITE_ROUTES } from "../../utils/routes";
 
 const { LOGIN, POSTS } = WEBSITE_ROUTES;
 
@@ -88,12 +90,9 @@ function PostImageCarousel({ images, postTitle }) {
 export default function PostDetail() {
   const { [URL_PARAMS.POST_ID]: postId } = useParams();
   const navigate = useNavigate();
-  const {
-    comments,
-    interactions,
-    isUserAuthenticated,
-    user: userInfo,
-  } = useStore();
+  const queryClient = useQueryClient();
+
+  const { isUserAuthenticated, user: userInfo } = useStore();
   const {
     data: postDetail,
     isLoading: postIsLoading,
@@ -102,11 +101,13 @@ export default function PostDetail() {
 
   const { mutate: updatePostView, isPending: isPostViewUpdating } =
     useUpdatePostViewById();
+  const { mutate: updatePostLike, isPending: isPostLikeUpdating } =
+    useUpdatePostLikeById();
+  const { mutate: updatePostComment, isPending: isPostCommentUpdating } =
+    useUpdatePostCommentById();
 
-  const [postComments, setPostComments] = useState([]);
   const [newComment, setNewComment] = useState("");
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  const [isCommentEdit, setIsCommentEdit] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -118,30 +119,15 @@ export default function PostDetail() {
   useEffect(() => {
     if (!postIsLoading && postDetail) {
       // Get post stats
-      const postInteractions = interactions.filter(
-        (i) => i.postId === parseInt(1)
+      const userFeedback = postDetail?.feedback?.find(
+        (fb) => fb?.userId === userInfo?.id
       );
 
-      console.log("first", userInfo);
-      if (
-        postDetail?.feedback?.find((fb) => fb?.userId === userInfo?.id) ===
-        undefined
-      ) {
+      if (userFeedback === undefined) {
         updatePostView({ id: postId });
       }
-
-      const likes = postInteractions.filter((i) => i.type === "like").length;
-      setLikesCount(likes);
-
-      // Check if user liked
-      if (isUserAuthenticated && userInfo) {
-        const userLiked = postInteractions.some(
-          (i) => i.type === "like" && i.userId === userInfo.id
-        );
-        setIsLiked(userLiked);
-      }
     }
-  }, [postIsLoading, postDetail, interactions, isUserAuthenticated, userInfo]);
+  }, [postId, postIsLoading, postDetail, isUserAuthenticated, userInfo]);
 
   // useEffect(() => {
   //   // Get comments for this post
@@ -149,7 +135,8 @@ export default function PostDetail() {
   //   setPostComments(postCommentsData);
   // }, [id, comments]);
 
-  if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
+  if (postIsLoading || isPostViewUpdating)
+    return <LoadingSpinner isLoading={postIsLoading} />;
 
   const handleLike = () => {
     if (!isUserAuthenticated) {
@@ -158,9 +145,20 @@ export default function PostDetail() {
       return;
     }
 
-    setIsLiked(!isLiked);
-    setLikesCount(isLiked ? likesCount - 1 : likesCount + 1);
-    toast.success(isLiked ? "Like removed" : "Post liked!");
+    updatePostLike(
+      { id: postId },
+      {
+        onSuccess: (response) => {
+          // Ensure the post detail is refetched after the like update
+          queryClient.invalidateQueries(["post", postId]);
+
+          const userFeedback = response?.feedback?.find(
+            (fb) => fb?.userId === userInfo?.id
+          );
+          toast.success(userFeedback?.isLiked ? "Post liked!" : "Like removed");
+        },
+      }
+    );
   };
 
   const handleComment = (e) => {
@@ -177,19 +175,17 @@ export default function PostDetail() {
       return;
     }
 
-    // Add comment (in real app, this would be an API call)
-    const comment = {
-      id: Date.now(),
-      postId: parseInt(1),
-      userId: userInfo.id,
-      userName: userInfo.name,
-      content: newComment,
-      createdAt: new Date().toISOString(),
-    };
-
-    setPostComments([comment, ...postComments]);
-    setNewComment("");
-    toast.success("Comment added!");
+    updatePostComment(
+      { id: postId, data: { comment: newComment } },
+      {
+        onSuccess: () => {
+          // Ensure the post detail is refetched after the like update
+          queryClient.invalidateQueries(["post", postId]);
+          setIsCommentEdit(false);
+          toast.success("Comment added!");
+        },
+      }
+    );
   };
 
   const handleShare = (platform) => {
@@ -275,12 +271,9 @@ export default function PostDetail() {
     );
   }
 
-  const sentimentColor =
-    postDetail?.sentiment === "positive"
-      ? "text-green-600 bg-green-50"
-      : postDetail?.sentiment === "negative"
-      ? "text-red-600 bg-red-50"
-      : "text-yellow-600 bg-yellow-50";
+  const userFeedback = postDetail?.feedback?.find(
+    (feedback) => feedback.userId === userInfo?.id
+  );
 
   return (
     <PageTransition>
@@ -311,13 +304,13 @@ export default function PostDetail() {
                 {/* Post Header */}
                 <div className="p-4 border-b border-gray-200 flex items-center gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                    {postDetail?.author
-                      ? postDetail?.author[0]?.toUpperCase()
+                    {postDetail?.admin
+                      ? postDetail?.admin?.fullName?.toString().charAt(0)
                       : "A"}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900">
-                      {postDetail?.author || "Anonymous"}
+                      {postDetail?.admin?.fullName || "Anonymous"}
                     </h3>
                     <p className="text-xs text-gray-500">
                       {timeAgo(postDetail?.createdAt)}
@@ -369,7 +362,9 @@ export default function PostDetail() {
 
                     {/* Stats */}
                     <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">
-                      <span>{postDetail?.views || 0} views</span>
+                      <span>
+                        {postDetail?.feedbackStats?.totalViews || 0} views
+                      </span>
                       <span>•</span>
                       <span>{timeAgo(postDetail?.createdAt)}</span>
                     </div>
@@ -378,39 +373,53 @@ export default function PostDetail() {
                   {/* Comments Section */}
                   <div className="border-t border-gray-200 pt-4">
                     <h3 className="font-semibold text-gray-900 mb-4">
-                      Comments ({postComments.length})
+                      Comments ({postDetail?.feedbackStats?.totalComments})
                     </h3>
 
-                    {postComments.length === 0 ? (
+                    {postDetail?.feedbackStats?.totalComments === 0 ? (
                       <p className="text-gray-500 text-center py-8 text-sm">
                         No comments yet. Be the first to comment!
                       </p>
                     ) : (
                       <div className="space-y-4">
-                        {postComments?.map((comment) => (
-                          <div key={comment.id} className="flex gap-3">
+                        {postDetail?.feedback?.map((fb) => (
+                          <div key={fb?.userId} className="flex gap-3">
                             <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-sm">
-                              {comment.userName
-                                ? comment.userName[0].toUpperCase()
+                              {fb?.user
+                                ? fb?.user?.fullName?.toString().charAt(0)
                                 : "U"}
                             </div>
                             <div className="flex-1 min-w-0">
                               <div className="bg-gray-50 rounded-2xl px-3 py-2">
                                 <p className="font-semibold text-sm text-gray-900">
-                                  {comment.userName}
+                                  {fb?.user?.fullName}
                                 </p>
                                 <p className="text-sm text-gray-700 break-words">
-                                  {comment.content}
+                                  {fb?.comment}
                                 </p>
                               </div>
                               <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 px-3">
-                                <span>{timeAgo(comment.createdAt)}</span>
-                                <button className="hover:text-gray-700 font-medium">
+                                <span>{timeAgo(fb?.postedAt)}</span>
+                                {fb?.userId === userInfo?.id && (
+                                  <button
+                                    className="hover:text-gray-700 font-medium"
+                                    disabled={
+                                      isPostCommentUpdating || isCommentEdit
+                                    }
+                                    onClick={() => {
+                                      setIsCommentEdit(true);
+                                      setNewComment(fb?.comment);
+                                    }}
+                                  >
+                                    Edit
+                                  </button>
+                                )}
+                                {/* <button className="hover:text-gray-700 font-medium">
                                   Like
                                 </button>
                                 <button className="hover:text-gray-700 font-medium">
                                   Reply
-                                </button>
+                                </button> */}
                               </div>
                             </div>
                           </div>
@@ -426,14 +435,21 @@ export default function PostDetail() {
                   <div className="flex items-center gap-4 mb-3">
                     <button
                       onClick={handleLike}
-                      className={`transition-colors ${
-                        isLiked
+                      disabled={isPostLikeUpdating || postIsLoading}
+                      className={`${
+                        userFeedback?.isLiked
                           ? "text-red-600"
                           : "text-gray-700 hover:text-red-600"
+                      } ${
+                        isPostLikeUpdating || postIsLoading
+                          ? "cursor-not-allowed opacity-50"
+                          : "cursor-pointer"
                       }`}
                     >
                       <FiHeart
-                        className={`w-7 h-7 ${isLiked ? "fill-current" : ""}`}
+                        className={`w-7 h-7 ${
+                          userFeedback?.isLiked ? "fill-current" : ""
+                        }`}
                       />
                     </button>
                     <button
@@ -450,35 +466,45 @@ export default function PostDetail() {
                     >
                       <FiShare2 className="w-7 h-7" />
                     </button>
-                    <button className="ml-auto text-gray-700 hover:text-gray-900 transition-colors">
+                    {/* <button className="ml-auto text-gray-700 hover:text-gray-900 transition-colors">
                       <FiBookmark className="w-7 h-7" />
-                    </button>
+                    </button> */}
                   </div>
 
                   {/* Likes Count */}
                   <div className="mb-3">
-                    <p className="font-semibold text-sm">{likesCount} likes</p>
+                    <p className="font-semibold text-sm">
+                      {postDetail?.feedbackStats?.totalLikes} likes
+                    </p>
                   </div>
 
                   {/* Comment Input */}
                   {isUserAuthenticated ? (
-                    <form onSubmit={handleComment} className="flex gap-2">
-                      <input
-                        id="comment-input-mobile"
-                        type="text"
-                        value={newComment}
-                        onChange={(e) => setNewComment(e.target.value)}
-                        placeholder="Add a comment..."
-                        className="flex-1 px-4 py-2 border-0 focus:ring-0 text-sm"
-                      />
-                      <button
-                        type="submit"
-                        disabled={!newComment.trim()}
-                        className="text-blue-600 font-semibold text-sm hover:text-blue-700 disabled:text-blue-300 disabled:cursor-not-allowed"
-                      >
-                        Post
-                      </button>
-                    </form>
+                    <>
+                      {(!userFeedback?.comment || isCommentEdit) && (
+                        <form onSubmit={handleComment} className="flex gap-2">
+                          <input
+                            id="comment-input-mobile"
+                            type="text"
+                            value={newComment}
+                            onChange={(e) => setNewComment(e.target.value)}
+                            placeholder="Add a comment..."
+                            className="flex-1 px-4 py-2 border-0 focus:ring-0 text-sm"
+                          />
+                          <button
+                            type="submit"
+                            disabled={
+                              !newComment.trim() ||
+                              isPostCommentUpdating ||
+                              postIsLoading
+                            }
+                            className="text-blue-600 font-semibold text-sm hover:text-blue-700 disabled:text-blue-300 disabled:cursor-not-allowed"
+                          >
+                            {isCommentEdit ? "Update" : "Post"}
+                          </button>
+                        </form>
+                      )}
+                    </>
                   ) : (
                     <div className="text-center">
                       <Link
@@ -506,7 +532,12 @@ export default function PostDetail() {
                 <h3 className="font-semibold text-gray-700 mb-1">
                   Description
                 </h3>
-                <p className="text-gray-600">{postDetail?.description}</p>
+                <p
+                  className="text-gray-600"
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(postDetail?.description || ""),
+                  }}
+                />
               </div>
 
               <div>
@@ -530,7 +561,7 @@ export default function PostDetail() {
                   <span>{timeAgo(postDetail?.createdAt)}</span>
                 </div>
                 <span>•</span>
-                <span>{postDetail?.views || 0} views</span>
+                <span>{postDetail?.feedbackStats?.totalViews || 0} views</span>
               </div>
             </div>
           </div>

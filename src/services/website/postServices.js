@@ -52,3 +52,74 @@ export const useUpdatePost = () => {
     },
   });
 };
+
+// Update a post views
+export const useUpdatePostViewById = () => {
+  const queryClient = useQueryClient();
+  const { userAccessToken } = useStore();
+  const headers = getAPIRequestHeaders(userAccessToken);
+
+  return useMutation({
+    mutationFn: async ({ id, data = {} }) => {
+      const response = await API.put(
+        `/website/feedback/update-post-view-by-id/${id}`,
+        data,
+        { headers }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || "Error !!");
+    },
+  });
+};
+// Update a post likes
+export const useUpdatePostLikeById = () => {
+  const queryClient = useQueryClient();
+  const { userAccessToken } = useStore();
+  const headers = getAPIRequestHeaders(userAccessToken);
+
+  return useMutation({
+    mutationFn: async ({ id, data = {} }) => {
+      const response = await API.put(
+        `/website/feedback/update-post-like-by-id/${id}`,
+        data,
+        { headers }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || "Error !!");
+    },
+  });
+};
+
+// Update a post comments
+export const useUpdatePostCommentById = () => {
+  const queryClient = useQueryClient();
+  const { userAccessToken } = useStore();
+  const headers = getAPIRequestHeaders(userAccessToken);
+
+  return useMutation({
+    mutationFn: async ({ id, data = {} }) => {
+      const response = await API.put(
+        `/website/feedback/update-post-comment-by-id/${id}`,
+        data,
+        { headers }
+      );
+      return response.data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["post"] });
+    },
+    onError: (error) => {
+      toast.error(error?.response?.data?.error || "Error !!");
+    },
+  });
+};

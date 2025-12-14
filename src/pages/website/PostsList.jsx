@@ -1,21 +1,28 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
+import { useEffect, useState } from "react";
+import { FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import {
-  FiSearch,
-  FiHeart,
-  FiMessageCircle,
-  FiShare2,
-  FiTrendingUp,
-  FiClock,
+  FiCheck,
   FiChevronLeft,
   FiChevronRight,
+  FiCopy,
+  FiHeart,
+  FiMessageCircle,
+  FiSearch,
+  FiShare2,
+  FiTrendingUp,
 } from "react-icons/fi";
-import useStore from "../../store";
-import PageTransition from "../../components/website/PageTransition";
-import { WEBSITE_ROUTES } from "../../utils/routes";
-import { useGetAllPosts } from "../../services/website/postServices";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import LoadingSpinner from "../../components/LoadingSpinner";
+import PageTransition from "../../components/website/PageTransition";
+import {
+  useGetAllPosts,
+  useUpdatePostLikeById,
+} from "../../services/website/postServices";
+import useStore from "../../store";
+import { WEBSITE_ROUTES } from "../../utils/routes";
 
 const { LOGIN, POST_DETAIL } = WEBSITE_ROUTES;
 
@@ -82,7 +89,9 @@ function ImageCarousel({ images, postTitle }) {
 
 export default function PostsList() {
   const navigate = useNavigate();
-  const { tags, interactions, isUserAuthenticated } = useStore();
+  const queryClient = useQueryClient();
+
+  const { tags, isUserAuthenticated, user: userInfo } = useStore();
 
   const {
     data: posts,
@@ -90,10 +99,16 @@ export default function PostsList() {
     isError: postIsError,
   } = useGetAllPosts();
 
+  const { mutate: updatePostLike, isPending: isPostLikeUpdating } =
+    useUpdatePostLikeById();
+
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const [postId, setPostId] = useState(null);
   const [filteredPosts, setFilteredPosts] = useState([]);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     if (!postIsLoading && posts) {
@@ -130,17 +145,79 @@ export default function PostsList() {
 
   if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
 
-  const getPostStats = (postId) => {
-    const postInteractions = interactions.filter((i) => i.postId === postId);
-    const likes = postInteractions.filter((i) => i.type === "like").length;
-    const comments = postInteractions.filter(
-      (i) => i.type === "comment"
-    ).length;
-    return { likes, comments };
-  };
-
   const handlePostClick = (postId) => {
     navigate(`${POST_DETAIL}/${postId}`);
+  };
+
+  const handleLike = (id) => {
+    if (!isUserAuthenticated) {
+      toast.info("Please login to like posts");
+      navigate(LOGIN);
+      return;
+    }
+
+    updatePostLike(
+      { id },
+      {
+        onSuccess: (response) => {
+          // Ensure the post detail is refetched after the like update
+          queryClient.invalidateQueries(["post"]);
+
+          const userFeedback = response?.feedback?.find(
+            (fb) => fb?.userId === userInfo?.id
+          );
+          toast.success(userFeedback?.isLiked ? "Post liked!" : "Like removed");
+        },
+      }
+    );
+  };
+
+  const shareUrl = window.location.origin + `${POST_DETAIL}/${postId}`;
+
+  const handleShare = (platform) => {
+    if (!isUserAuthenticated) {
+      toast.info("Please login to share posts");
+      navigate(LOGIN);
+      return;
+    }
+
+    const text = "Check out this post!";
+
+    let customShareUrl = "";
+    switch (platform) {
+      case "facebook":
+        customShareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+          shareUrl
+        )}`;
+        break;
+      case "twitter":
+        customShareUrl = `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+          shareUrl
+        )}&text=${encodeURIComponent(text)}`;
+        break;
+      case "linkedin":
+        customShareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(
+          shareUrl
+        )}`;
+        break;
+      case "whatsapp":
+        customShareUrl = `https://wa.me/?text=${encodeURIComponent(
+          text + " " + shareUrl
+        )}`;
+        break;
+      default:
+        return;
+    }
+
+    window.open(shareUrl, "_blank", "width=600,height=400");
+    toast.success("Sharing postDetail?...");
+  };
+
+  const copyLink = () => {
+    navigator.clipboard.writeText(shareUrl);
+    setCopied(true);
+    toast.success("Link copied to clipboard!");
+    setTimeout(() => setCopied(false), 2000);
   };
 
   const timeAgo = (date) => {
@@ -244,14 +321,10 @@ export default function PostsList() {
           ) : (
             <div className="max-w-2xl mx-auto space-y-6">
               {filteredPosts?.map((post) => {
-                const stats = getPostStats(post?._id);
-                const sentimentColor =
-                  post.sentiment === "positive"
-                    ? "text-green-600"
-                    : post.sentiment === "negative"
-                    ? "text-red-600"
-                    : "text-yellow-600";
-
+                const stats = post?.feedbackStats || {};
+                const userFeedback = post?.feedback?.find(
+                  (feedback) => feedback?.userId === userInfo?.id
+                );
                 return (
                   <div
                     key={post?._id}
@@ -260,13 +333,13 @@ export default function PostsList() {
                     {/* Post Header */}
                     <div className="p-4 flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {post.user?.fullName
-                          ? post?.user?.fullName?.toUpperCase()
+                        {post.admin
+                          ? post?.admin?.fullName?.toString().charAt(0)
                           : "A"}
                       </div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900">
-                          {post.user?.fullName}
+                          {post?.admin?.fullName || "Anonymous"}
                         </h3>
                         <p className="text-xs text-gray-500">
                           {timeAgo(post?.createdAt)}
@@ -301,15 +374,30 @@ export default function PostsList() {
                     <div className="p-4">
                       <div className="flex items-center gap-4 mb-3">
                         <button
+                          disabled={isPostLikeUpdating || postIsLoading}
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isUserAuthenticated) {
                               navigate(LOGIN);
                             }
+
+                            handleLike(post?._id);
                           }}
-                          className="text-gray-700 hover:text-red-600 transition-colors"
+                          className={`${
+                            userFeedback?.isLiked
+                              ? "text-red-600"
+                              : "text-gray-700 hover:text-red-600"
+                          } ${
+                            isPostLikeUpdating || postIsLoading
+                              ? "opacity-50 cursor-not-allowed"
+                              : "cursor-pointer"
+                          }`}
                         >
-                          <FiHeart className="w-6 h-6" />
+                          <FiHeart
+                            className={`w-7 h-7 ${
+                              userFeedback?.isLiked ? "fill-current" : ""
+                            }`}
+                          />
                         </button>
                         <button
                           onClick={() => handlePostClick(post?._id)}
@@ -323,6 +411,8 @@ export default function PostsList() {
                             if (!isUserAuthenticated) {
                               navigate(LOGIN);
                             }
+                            setPostId(post?._id);
+                            setShowShareModal(true);
                           }}
                           className="text-gray-700 hover:text-green-600 transition-colors"
                         >
@@ -333,7 +423,7 @@ export default function PostsList() {
                       {/* Likes Count */}
                       <div className="mb-2">
                         <p className="font-semibold text-sm">
-                          {post?.feedbackStats?.totalLikes} likes
+                          {stats?.totalLikes} likes
                         </p>
                       </div>
 
@@ -354,12 +444,12 @@ export default function PostsList() {
                       </div>
 
                       {/* Comments Preview */}
-                      {stats.comments > 0 && (
+                      {stats?.totalComments > 0 && (
                         <button
                           onClick={() => handlePostClick(post?._id)}
                           className="text-gray-500 text-sm hover:text-gray-700"
                         >
-                          View all {stats.comments} comments
+                          View all {stats?.totalComments} comments
                         </button>
                       )}
 
@@ -383,6 +473,78 @@ export default function PostsList() {
             </div>
           )}
         </div>
+
+        {/* Share Modal */}
+        {showShareModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+            <div className="bg-white rounded-xl max-w-md w-full p-6">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6">
+                Share Post
+              </h3>
+
+              {/* Social Share Buttons */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <button
+                  onClick={() => handleShare("facebook")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  <FaFacebook className="w-5 h-5" />
+                  Facebook
+                </button>
+                <button
+                  onClick={() => handleShare("twitter")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-sky-500 text-white rounded-lg hover:bg-sky-600 transition-colors"
+                >
+                  <FaTwitter className="w-5 h-5" />
+                  Twitter
+                </button>
+                <button
+                  onClick={() => handleShare("linkedin")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-blue-700 text-white rounded-lg hover:bg-blue-800 transition-colors"
+                >
+                  <FaLinkedin className="w-5 h-5" />
+                  LinkedIn
+                </button>
+                <button
+                  onClick={() => handleShare("whatsapp")}
+                  className="flex items-center justify-center gap-2 px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors"
+                >
+                  <FaWhatsapp className="w-5 h-5" />
+                  WhatsApp
+                </button>
+              </div>
+
+              {/* Copy Link */}
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Or copy link
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={shareUrl}
+                    readOnly
+                    className="flex-1 px-4 py-2 border border-gray-300 rounded-lg bg-gray-50"
+                  />
+                  <button
+                    onClick={copyLink}
+                    className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors"
+                  >
+                    {copied ? <FiCheck /> : <FiCopy />}
+                  </button>
+                </div>
+              </div>
+
+              {/* Close Button */}
+              <button
+                onClick={() => setShowShareModal(false)}
+                className="w-full px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </PageTransition>
   );
