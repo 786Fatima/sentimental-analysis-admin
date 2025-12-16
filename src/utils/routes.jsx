@@ -12,6 +12,7 @@ export const ADMIN_ROUTES = {
   FEEDBACKS: "/admin/feedbacks",
   FEEDBACK_DETAIL: "/admin/feedback-detail/post",
   COMPOSE_POST: "/admin/posts/compose",
+  EDIT_POST: "/admin/posts/edit",
   USERS: "/admin/users",
   USER_DETAIL: "/admin/users",
 };

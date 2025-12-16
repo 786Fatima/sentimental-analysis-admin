@@ -2,14 +2,20 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 import API from "../Api";
 import { toast } from "react-toastify";
+import { getAPIRequestHeaders } from "../../utils/functions";
+import useStore from "../../store";
 
 // Create a new post
 export const useCreatePost = () => {
   const queryClient = useQueryClient();
+  const { adminAccessToken } = useStore();
+  const headers = getAPIRequestHeaders(adminAccessToken);
 
   return useMutation({
     mutationFn: async (data) => {
-      const response = await API.post(`/admin-panel/post/create`, data);
+      const response = await API.post(`/admin-panel/post/create`, data, {
+        headers,
+      });
       return response.data;
     },
     onSuccess: () => {
@@ -46,6 +52,20 @@ export const useGetPostById = (id) => {
     queryKey: ["post", id],
     queryFn: async () => {
       const response = await API.get(`/admin-panel/post/get-one-by-id/${id}`);
+      return response?.data;
+    },
+    enabled: !!id,
+  });
+};
+
+// Get a single post sentiment by ID
+export const useGetPostSentimentById = (id) => {
+  return useQuery({
+    // queryKey: ["post", id],
+    queryFn: async () => {
+      const response = await API.get(
+        `/admin-panel/post/get-sentiment-by-id/${id}`
+      );
       return response?.data;
     },
     enabled: !!id,

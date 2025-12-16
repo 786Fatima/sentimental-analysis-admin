@@ -43,6 +43,7 @@ const {
   USER_DETAIL,
   POSTS,
   COMPOSE_POST,
+  EDIT_POST,
   FEEDBACKS,
   FEEDBACK_DETAIL,
 } = ADMIN_ROUTES;
@@ -183,6 +184,14 @@ export default function App() {
               />
               <Route
                 path={COMPOSE_POST}
+                element={
+                  <AdminLayout>
+                    <ComposeNewPost />
+                  </AdminLayout>
+                }
+              />
+              <Route
+                path={EDIT_POST + `/:${POST_ID}`}
                 element={
                   <AdminLayout>
                     <ComposeNewPost />

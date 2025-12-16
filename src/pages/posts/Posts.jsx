@@ -14,8 +14,11 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 import { useGetAllPosts } from "../../services/admin-panel/postServices";
 import { STATUS } from "../../utils/constants";
 import { capitalizeWords } from "../../utils/functions";
+import { useNavigate } from "react-router-dom";
+import { ADMIN_ROUTES } from "../../utils/routes";
 
 export default function Posts() {
+  const navigate = useNavigate();
   const {
     data: posts,
     isLoading: postIsLoading,
@@ -78,6 +81,9 @@ export default function Posts() {
     setShowModal(true);
   };
 
+  const handleAddNewPost = () => {
+    navigate(ADMIN_ROUTES.COMPOSE_POST);
+  };
   const handleEdit = (post) => {
     toast.info(
       `Edit functionality for "${post.title}" would be implemented here`
@@ -159,7 +165,7 @@ export default function Posts() {
 
                     {/* Image indicators */}
                     <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
-                      {selectedPost.images.map((_, index) => (
+                      {selectedPost?.images.map((_, index) => (
                         <button
                           key={index}
                           onClick={() => setCurrentImageIndex(index)}
@@ -201,14 +207,14 @@ export default function Posts() {
               />
 
               {/* Tags */}
-              {selectedPost?.tags && selectedPost?.tags.length > 0 && (
+              {selectedPost?.tagsData && selectedPost?.tagsData.length > 0 && (
                 <div className="flex flex-wrap gap-2">
-                  {selectedPost?.tags.map((tag, index) => (
+                  {selectedPost?.tagsData.map((tag) => (
                     <span
-                      key={index}
+                      key={tag?._id}
                       className="px-3 py-1 bg-primary-100 text-primary-800 text-sm rounded-full"
                     >
-                      #{tag}
+                      #{tag?.name}
                     </span>
                   ))}
                 </div>
@@ -251,7 +257,10 @@ export default function Posts() {
           <h1 className="text-2xl font-bold text-gray-900">Posts</h1>
           <p className="text-gray-600">Manage your published content</p>
         </div>
-        <button className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2">
+        <button
+          onClick={handleAddNewPost}
+          className="px-4 py-2 bg-primary-600 text-white rounded-md hover:bg-primary-700 flex items-center space-x-2"
+        >
           <FiPlus className="w-4 h-4" />
           <span>New Post</span>
         </button>

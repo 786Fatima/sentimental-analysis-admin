@@ -11,17 +11,23 @@ import {
 } from "react-icons/fi";
 import clsx from "clsx";
 import { STATUS } from "../utils/constants";
+import { useNavigate } from "react-router-dom";
+import { ADMIN_ROUTES } from "../utils/routes";
+import { useDeletePost } from "../services/admin-panel/postServices";
 
 export default function PostCard({ post, onEdit, onDelete, onToggleStatus }) {
+  const navigate = useNavigate();
   const [showMenu, setShowMenu] = useState(false);
 
+  const { mutate: deletePost, isPending: isDeleting } = useDeletePost();
+
   const handleEdit = () => {
-    onEdit(post);
     setShowMenu(false);
+    navigate(ADMIN_ROUTES.EDIT_POST + `/${post?._id}`);
   };
 
   const handleDelete = () => {
-    onDelete(post?._id);
+    deletePost(post?._id);
     setShowMenu(false);
   };
 
@@ -71,22 +77,16 @@ export default function PostCard({ post, onEdit, onDelete, onToggleStatus }) {
               <div className="absolute right-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-10">
                 <button
                   onClick={handleEdit}
+                  disabled={isDeleting}
                   className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
                 >
                   <FiEdit className="w-4 h-4" />
                   <span>Edit</span>
                 </button>
-                <button
-                  onClick={handleToggleStatus}
-                  className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-2"
-                >
-                  <FiPower className="w-4 h-4" />
-                  <span>
-                    {post?.status === STATUS.ACTIVE ? "Enable" : "Disable"}
-                  </span>
-                </button>
+
                 <button
                   onClick={handleDelete}
+                  disabled={isDeleting}
                   className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
                 >
                   <FiTrash2 className="w-4 h-4" />
@@ -106,19 +106,19 @@ export default function PostCard({ post, onEdit, onDelete, onToggleStatus }) {
         />
 
         {/* Tags */}
-        {post?.tags && post?.tags.length > 0 && (
+        {post?.tagsData && post?.tagsData?.length > 0 && (
           <div className="flex flex-wrap gap-2 mb-4">
-            {post?.tags.slice(0, 3).map((tag, index) => (
+            {post?.tagsData?.slice(0, 3).map((tag) => (
               <span
-                key={index}
+                key={tag?._id}
                 className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full"
               >
-                #{tag}
+                #{tag?.name}
               </span>
             ))}
-            {post?.tags.length > 3 && (
+            {post?.tagsData?.length > 3 && (
               <span className="px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded-full">
-                +{post?.tags.length - 3} more
+                +{post?.tagsData?.length - 3} more
               </span>
             )}
           </div>

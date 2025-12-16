@@ -167,7 +167,7 @@ export default function Users() {
                 {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Last Active
                 </th> */}
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Actions
                 </th>
               </tr>
@@ -228,8 +228,8 @@ export default function Users() {
                       {formatLastActive(user.lastActive)}
                     </div>
                   </td> */}
-                  <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                    <div className="flex items-center space-x-2">
+                  <td className="whitespace-nowrap text-sm font-medium">
+                    <div className="flex justify-center items-center space-x-2">
                       <Link
                         to={`${ADMIN_ROUTES.USER_DETAIL}/${user?._id}`}
                         className="text-primary-600 hover:text-primary-900 p-2 hover:bg-primary-50 rounded-md transition-colors"
@@ -237,7 +237,7 @@ export default function Users() {
                       >
                         <FiEye className="w-4 h-4" />
                       </Link>
-                      <button
+                      {/* <button
                         onClick={() => handleToggleUserStatus(user?._id)}
                         className={`p-2 rounded-md transition-colors ${
                           user.isEnabled
@@ -251,7 +251,7 @@ export default function Users() {
                         ) : (
                           <FiUserCheck className="w-4 h-4" />
                         )}
-                      </button>
+                      </button> */}
                     </div>
                   </td>
                 </tr>

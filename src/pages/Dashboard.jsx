@@ -9,16 +9,68 @@ import {
 } from "react-icons/fi";
 import useStore from "../store";
 import TagModal from "../components/TagModal";
+import {
+  useGetDashboardStats,
+  useGetTopInteractionsByStates,
+  useGetTopPostInteractions,
+} from "../services/admin-panel/dashboardServices";
+import LoadingSpinner from "../components/LoadingSpinner";
+import { capitalizeWords } from "../utils/functions";
+
+const dateFilters = [
+  { label: "Today", value: "today" },
+  { label: "This Week", value: "week" },
+  { label: "This Month", value: "month" },
+  { label: "This Year", value: "year" },
+];
 
 export default function Dashboard() {
   const { users, posts, tags, interactions, getStats } = useStore();
+
   const [stats, setStats] = useState({});
-  const [timeFilter, setTimeFilter] = useState("today");
+  const [timeFilter, setTimeFilter] = useState(dateFilters[0].value);
+  const [postInteractionFilter, setPostInteractionFilter] = useState(
+    dateFilters[0].value
+  );
+  const [stateWiseInteractionFilter, setStateWiseInteractionFilter] = useState(
+    dateFilters[0].value
+  );
   const [showTagModal, setShowTagModal] = useState(false);
+
+  const {
+    data: dashboardStats,
+    isLoading: dashboardStatsIsLoading,
+    isError: dashboardStatsIsError,
+  } = useGetDashboardStats();
+  const {
+    data: postInteractions,
+    isLoading: postInteractionIsLoading,
+    isError: postInteractionIsError,
+  } = useGetTopPostInteractions({ period: postInteractionFilter });
+  const {
+    data: stateWiseInteractions,
+    isLoading: stateWiseInteractionIsLoading,
+    isError: stateWiseInteractionIsError,
+  } = useGetTopInteractionsByStates({ period: stateWiseInteractionFilter });
 
   useEffect(() => {
     setStats(getStats());
   }, [users, posts, interactions, getStats]);
+
+  if (
+    dashboardStatsIsLoading ||
+    postInteractionIsLoading ||
+    stateWiseInteractionIsLoading
+  )
+    return (
+      <LoadingSpinner
+        isLoading={
+          dashboardStatsIsLoading ||
+          postInteractionIsLoading ||
+          stateWiseInteractionIsLoading
+        }
+      />
+    );
 
   const StatCard = ({
     title,
@@ -41,7 +93,7 @@ export default function Dashboard() {
           <div>
             <p className="text-sm font-medium text-gray-600">{title}</p>
             <p className="text-2xl font-semibold text-gray-900">{value}</p>
-            {trend && (
+            {/* {trend && (
               <div className="flex items-center mt-1">
                 {trend === "up" ? (
                   <FiTrendingUp className="w-4 h-4 text-green-500 mr-1" />
@@ -56,7 +108,7 @@ export default function Dashboard() {
                   {trendValue}% from yesterday
                 </span>
               </div>
-            )}
+            )} */}
           </div>
           <div className={`p-3 rounded-full ${colorClasses[color]}`}>
             <Icon className="w-6 h-6" />
@@ -67,31 +119,29 @@ export default function Dashboard() {
   };
 
   const TopPostsSection = () => {
-    const [filter, setFilter] = useState("today");
-    const topPosts = posts.slice(0, 5);
-
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Top Posts</h3>
             <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              value={postInteractionFilter}
+              onChange={(e) => setPostInteractionFilter(e.target.value)}
               className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="today">Today</option>
-              <option value="week">This Week</option>
-              <option value="month">This Month</option>
-              <option value="date">Custom Date</option>
+              {dateFilters.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
         <div className="p-6">
           <div className="space-y-4">
-            {topPosts.map((post, index) => (
+            {postInteractions?.map((post, index) => (
               <div
-                key={post.id}
+                key={post?._id}
                 className="flex items-center justify-between py-2"
               >
                 <div className="flex items-center space-x-3">
@@ -100,12 +150,12 @@ export default function Dashboard() {
                   </span>
                   <div>
                     <p className="text-sm font-medium text-gray-900 truncate max-w-xs">
-                      {post.title}
+                      {post?.title}
                     </p>
                     <div className="flex items-center space-x-4 text-xs text-gray-500">
-                      <span>{post.likes} likes</span>
-                      <span>{post.views} views</span>
-                      <span>{post.comments} comments</span>
+                      <span>{post?.feedbackStats?.totalLikes} likes</span>
+                      <span>{post?.feedbackStats?.totalViews} views</span>
+                      <span>{post?.feedbackStats?.totalComments} comments</span>
                     </div>
                   </div>
                 </div>
@@ -159,8 +209,6 @@ export default function Dashboard() {
   };
 
   const StateInteractionsSection = () => {
-    const [filter, setFilter] = useState("today");
-
     return (
       <div className="bg-white rounded-lg shadow">
         <div className="p-6 border-b border-gray-200">
@@ -169,32 +217,30 @@ export default function Dashboard() {
               State-wise Interactions
             </h3>
             <select
-              value={filter}
-              onChange={(e) => setFilter(e.target.value)}
+              value={stateWiseInteractionFilter}
+              onChange={(e) => setStateWiseInteractionFilter(e.target.value)}
               className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
             >
-              <option value="today">Today</option>
-              <option value="weekly">Weekly</option>
-              <option value="monthly">Monthly</option>
-              <option value="date">Custom Date</option>
+              {dateFilters.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
             </select>
           </div>
         </div>
         <div className="p-6">
           <div className="space-y-3">
-            {interactions.map((state) => (
+            {stateWiseInteractions?.map((post) => (
               <div
-                key={state.id}
+                key={post?.state}
                 className="flex items-center justify-between py-2"
               >
                 <span className="text-sm font-medium text-gray-900">
-                  {state.state}
+                  {capitalizeWords(post?.state)}
                 </span>
                 <div className="text-sm text-gray-600">
-                  {filter === "today" && state.todayInteractions}
-                  {filter === "weekly" && state.weeklyAvg}
-                  {filter === "monthly" && state.monthlyAvg}
-                  {filter === "date" && state.dailyAvg} interactions
+                  {post?.totalInteractions} interactions
                 </div>
               </div>
             ))}
@@ -217,7 +263,7 @@ export default function Dashboard() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard
           title="Total Visits"
-          value={stats.totalVisits?.toLocaleString() || "0"}
+          value={dashboardStats?.totalViews?.toLocaleString() || "0"}
           icon={FiEye}
           trend="up"
           trendValue="12"
@@ -233,15 +279,15 @@ export default function Dashboard() {
         />
         <StatCard
           title="Registered Today"
-          value={stats.usersRegisteredToday || "0"}
+          value={dashboardStats?.registeredUsersToday || "0"}
           icon={FiUserPlus}
           trend="down"
           trendValue="3"
           color="yellow"
         />
         <StatCard
-          title="Today's Interactions"
-          value={stats.todayInteractions || "0"}
+          title="Total Interactions"
+          value={dashboardStats?.totalInteractions || "0"}
           icon={FiTrendingUp}
           trend="up"
           trendValue="15"
