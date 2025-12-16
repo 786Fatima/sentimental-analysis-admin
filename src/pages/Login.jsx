@@ -43,8 +43,8 @@ export default function Login() {
     try {
       await loginAdmin(data, {
         onSuccess: (response) => {
-          if (response?.user && response?.token) {
-            adminLogin({ data: response?.user, token: response?.token });
+          if (response?.admin && response?.token) {
+            adminLogin({ data: response?.admin, token: response?.token });
             navigate(DASHBOARD);
           }
         },
@@ -116,7 +116,7 @@ export default function Login() {
                   name="password"
                   type={showPassword ? "text" : "password"}
                   autoComplete="current-password"
-                  {...register("email")}
+                  {...register("password")}
                   className="block w-full pl-10 pr-10 py-2 border border-gray-300 rounded-md placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-primary-500 sm:text-sm"
                   placeholder="Password"
                 />
