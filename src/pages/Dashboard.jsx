@@ -270,8 +270,8 @@ export default function Dashboard() {
           color="blue"
         />
         <StatCard
-          title="Users Online"
-          value={stats.usersOnline || "0"}
+          title="Sentiments Analyzed"
+          value={dashboardStats?.totalComments || "0"}
           icon={FiUsers}
           trend="up"
           trendValue="8"

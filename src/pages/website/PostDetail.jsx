@@ -1,6 +1,6 @@
 import { useQueryClient } from "@tanstack/react-query";
 import DOMPurify from "dompurify";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { FaFacebook, FaLinkedin, FaTwitter, FaWhatsapp } from "react-icons/fa";
 import {
   FiArrowLeft,
@@ -116,19 +116,26 @@ export default function PostDetail() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   }, [postId]);
 
+  const hasUpdatedViewRef = useRef(false);
+
   useEffect(() => {
-    if (!postIsLoading && postDetail) {
-      // Get post stats
+    if (
+      !postIsLoading &&
+      postDetail &&
+      isUserAuthenticated &&
+      userInfo?.id &&
+      !hasUpdatedViewRef.current
+    ) {
       const userFeedback = postDetail?.feedback?.find(
         (fb) => fb?.userId === userInfo?.id
       );
 
-      if (userFeedback === undefined) {
+      if (!userFeedback || !userFeedback?.hasViewed) {
+        hasUpdatedViewRef.current = true; // ✅ block future calls
         updatePostView({ id: postId });
       }
     }
   }, [postId, postIsLoading, postDetail, isUserAuthenticated, userInfo]);
-
   // useEffect(() => {
   //   // Get comments for this post
   //   const postCommentsData = comments.filter((c) => c.postId === parseInt(id));
@@ -137,6 +144,11 @@ export default function PostDetail() {
 
   if (postIsLoading || isPostViewUpdating)
     return <LoadingSpinner isLoading={postIsLoading} />;
+
+  if (!hasUpdatedViewRef.current) {
+    hasUpdatedViewRef.current = true;
+    updatePostView({ id: postId });
+  }
 
   const handleLike = () => {
     if (!isUserAuthenticated) {
@@ -347,18 +359,19 @@ export default function PostDetail() {
                     />
 
                     {/* Tags */}
-                    {postDetail?.tags && postDetail?.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mt-3">
-                        {postDetail?.tags.map((tag, index) => (
-                          <span
-                            key={index}
-                            className="text-blue-600 text-sm font-medium hover:underline cursor-pointer"
-                          >
-                            #{tag}
-                          </span>
-                        ))}
-                      </div>
-                    )}
+                    {postDetail?.tagsData &&
+                      postDetail?.tagsData.length > 0 && (
+                        <div className="flex flex-wrap gap-1.5 mt-3">
+                          {postDetail?.tagsData?.map((tag) => (
+                            <span
+                              key={tag?._id}
+                              className="text-blue-600 text-sm font-medium hover:underline cursor-pointer"
+                            >
+                              #{tag?.name}
+                            </span>
+                          ))}
+                        </div>
+                      )}
 
                     {/* Stats */}
                     <div className="flex items-center gap-4 mt-4 text-sm text-gray-500">

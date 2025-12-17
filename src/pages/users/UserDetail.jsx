@@ -177,20 +177,20 @@ export default function UserDetail() {
           </div>
         </div>
         <div className="flex items-center space-x-2">
-          <button
+          {/* <button
             onClick={() => setShowEditModal(true)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <FiEdit className="w-4 h-4 mr-2" />
             Edit User
-          </button>
-          <button
+          </button> */}
+          {/* <button
             onClick={() => setShowResetPasswordModal(true)}
             className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
           >
             <FiKey className="w-4 h-4 mr-2" />
             Reset Password
-          </button>
+          </button> */}
           <button
             onClick={handleToggleUserStatus}
             className={`inline-flex items-center px-4 py-2 rounded-md text-sm font-medium ${

@@ -23,6 +23,7 @@ import {
 } from "../../services/website/postServices";
 import useStore from "../../store";
 import { WEBSITE_ROUTES } from "../../utils/routes";
+import { useGetAllTags } from "../../services/website/tagServices";
 
 const { LOGIN, POST_DETAIL } = WEBSITE_ROUTES;
 
@@ -91,13 +92,18 @@ export default function PostsList() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { tags, isUserAuthenticated, user: userInfo } = useStore();
+  const { isUserAuthenticated, user: userInfo } = useStore();
 
   const {
     data: posts,
     isLoading: postIsLoading,
     isError: postIsError,
   } = useGetAllPosts();
+  const {
+    data: tags,
+    isLoading: tagIsLoading,
+    isError: tagIsError,
+  } = useGetAllTags();
 
   const { mutate: updatePostLike, isPending: isPostLikeUpdating } =
     useUpdatePostLikeById();
@@ -126,7 +132,7 @@ export default function PostsList() {
       // Filter by tag
       if (selectedTag !== "all") {
         result = result.filter(
-          (post) => post.tags && post.tags.includes(selectedTag)
+          (post) => post?.tags && post?.tags?.includes(selectedTag)
         );
       }
 
@@ -134,7 +140,9 @@ export default function PostsList() {
       if (sortBy === "recent") {
         result.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       } else if (sortBy === "popular") {
-        result.sort((a, b) => b.likes - a.likes);
+        result.sort(
+          (a, b) => b?.feedbackStats?.totalLikes - a?.feedbackStats?.totalLikes
+        );
       }
 
       setFilteredPosts(result);
@@ -143,7 +151,8 @@ export default function PostsList() {
     }
   }, [posts, postIsLoading, searchQuery, selectedTag, sortBy]);
 
-  if (postIsLoading) return <LoadingSpinner isLoading={postIsLoading} />;
+  if (postIsLoading || tagIsLoading)
+    return <LoadingSpinner isLoading={postIsLoading} />;
 
   const handlePostClick = (postId) => {
     navigate(`${POST_DETAIL}/${postId}`);
@@ -297,17 +306,17 @@ export default function PostsList() {
               >
                 All Posts
               </button>
-              {tags.slice(0, 10).map((tag) => (
+              {tags?.slice(0, 10).map((tag) => (
                 <button
-                  key={tag.id}
-                  onClick={() => setSelectedTag(tag.name)}
+                  key={tag?._id}
+                  onClick={() => setSelectedTag(tag?._id)}
                   className={`px-4 py-2 rounded-full font-medium transition-colors ${
-                    selectedTag === tag.name
+                    selectedTag === tag?._id
                       ? "bg-blue-600 text-white"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }`}
                 >
-                  {tag.name}
+                  {tag?.name}
                 </button>
               ))}
             </div>
@@ -454,14 +463,14 @@ export default function PostsList() {
                       )}
 
                       {/* Tags */}
-                      {post?.tags && post?.tags?.length > 0 && (
+                      {post?.tagsData && post?.tagsData?.length > 0 && (
                         <div className="flex flex-wrap gap-1.5 mt-3">
-                          {post?.tags?.map((tag, index) => (
+                          {post?.tagsData?.map((tag) => (
                             <span
-                              key={index}
+                              key={tag?._id}
                               className="text-blue-600 text-sm font-medium hover:underline cursor-pointer"
                             >
-                              #{tag}
+                              #{tag?.name}
                             </span>
                           ))}
                         </div>
