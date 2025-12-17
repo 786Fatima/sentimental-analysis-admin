@@ -130,7 +130,7 @@ export default function UserLogin() {
               </div>
 
               {/* Remember Me & Forgot Password */}
-              <div className="flex items-center justify-between">
+              {/* <div className="flex items-center justify-between">
                 <label className="flex items-center">
                   <input
                     type="checkbox"
@@ -146,7 +146,7 @@ export default function UserLogin() {
                 >
                   Forgot password?
                 </Link>
-              </div>
+              </div> */}
 
               {/* Login Button */}
               <button

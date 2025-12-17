@@ -26,7 +26,7 @@ const {
 export default function Sidebar() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { sidebarCollapsed, toggleSidebar, user, logout } = useStore();
+  const { sidebarCollapsed, toggleSidebar, admin, logout } = useStore();
 
   const navigation = [
     { name: "Dashboard", href: DASHBOARD, icon: FiHome },
@@ -101,7 +101,7 @@ export default function Sidebar() {
           {!sidebarCollapsed && (
             <div className="min-w-0 flex-1">
               <p className="text-sm font-medium text-gray-900 truncate">
-                {user?.email || "admin@co.in"}
+                {admin?.email || "admin@co.in"}
               </p>
               <p className="text-xs text-gray-500">Administrator</p>
             </div>

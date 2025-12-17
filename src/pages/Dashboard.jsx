@@ -33,7 +33,7 @@ export default function Dashboard() {
     dateFilters[0].value
   );
   const [stateWiseInteractionFilter, setStateWiseInteractionFilter] = useState(
-    dateFilters[0].value
+    dateFilters[3].value
   );
   const [showTagModal, setShowTagModal] = useState(false);
 
@@ -124,7 +124,7 @@ export default function Dashboard() {
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between">
             <h3 className="text-lg font-semibold text-gray-900">Top Posts</h3>
-            <select
+            {/* <select
               value={postInteractionFilter}
               onChange={(e) => setPostInteractionFilter(e.target.value)}
               className="text-sm border border-gray-300 rounded-md px-3 py-1 focus:outline-none focus:ring-2 focus:ring-primary-500"
@@ -134,7 +134,7 @@ export default function Dashboard() {
                   {option.label}
                 </option>
               ))}
-            </select>
+            </select> */}
           </div>
         </div>
         <div className="p-6">
@@ -197,9 +197,9 @@ export default function Dashboard() {
                     #{tag.name}
                   </span>
                 </div>
-                <div className="text-xs text-gray-500">
+                {/* <div className="text-xs text-gray-500">
                   {tag.likesCount + tag.commentsCount} interactions
-                </div>
+                </div> */}
               </div>
             ))}
           </div>

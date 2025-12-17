@@ -65,7 +65,7 @@ function AdminLayout({ children }) {
       <Sidebar />
       <main className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto p-6">
-          <Breadcrumbs />
+          {/* <Breadcrumbs /> */}
           {children}
         </div>
       </main>

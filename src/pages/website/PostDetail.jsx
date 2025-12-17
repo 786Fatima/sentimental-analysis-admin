@@ -395,48 +395,50 @@ export default function PostDetail() {
                       </p>
                     ) : (
                       <div className="space-y-4">
-                        {postDetail?.feedback?.map((fb) => (
-                          <div key={fb?.userId} className="flex gap-3">
-                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-sm">
-                              {fb?.user
-                                ? fb?.user?.fullName?.toString().charAt(0)
-                                : "U"}
-                            </div>
-                            <div className="flex-1 min-w-0">
-                              <div className="bg-gray-50 rounded-2xl px-3 py-2">
-                                <p className="font-semibold text-sm text-gray-900">
-                                  {fb?.user?.fullName}
-                                </p>
-                                <p className="text-sm text-gray-700 break-words">
-                                  {fb?.comment}
-                                </p>
+                        {postDetail?.feedback
+                          ?.filter((fb) => !!fb?.comment)
+                          ?.map((fb) => (
+                            <div key={fb?.userId} className="flex gap-3">
+                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 text-blue-600 font-semibold text-sm">
+                                {fb?.user
+                                  ? fb?.user?.fullName?.toString().charAt(0)
+                                  : "U"}
                               </div>
-                              <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 px-3">
-                                <span>{timeAgo(fb?.postedAt)}</span>
-                                {fb?.userId === userInfo?.id && (
-                                  <button
-                                    className="hover:text-gray-700 font-medium"
-                                    disabled={
-                                      isPostCommentUpdating || isCommentEdit
-                                    }
-                                    onClick={() => {
-                                      setIsCommentEdit(true);
-                                      setNewComment(fb?.comment);
-                                    }}
-                                  >
-                                    Edit
-                                  </button>
-                                )}
-                                {/* <button className="hover:text-gray-700 font-medium">
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-gray-50 rounded-2xl px-3 py-2">
+                                  <p className="font-semibold text-sm text-gray-900">
+                                    {fb?.user?.fullName}
+                                  </p>
+                                  <p className="text-sm text-gray-700 break-words">
+                                    {fb?.comment}
+                                  </p>
+                                </div>
+                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500 px-3">
+                                  <span>{timeAgo(fb?.postedAt)}</span>
+                                  {fb?.userId === userInfo?.id && (
+                                    <button
+                                      className="hover:text-gray-700 font-medium"
+                                      disabled={
+                                        isPostCommentUpdating || isCommentEdit
+                                      }
+                                      onClick={() => {
+                                        setIsCommentEdit(true);
+                                        setNewComment(fb?.comment);
+                                      }}
+                                    >
+                                      Edit
+                                    </button>
+                                  )}
+                                  {/* <button className="hover:text-gray-700 font-medium">
                                   Like
                                 </button>
                                 <button className="hover:text-gray-700 font-medium">
                                   Reply
                                 </button> */}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        ))}
+                          ))}
                       </div>
                     )}
                   </div>
@@ -556,13 +558,13 @@ export default function PostDetail() {
               <div>
                 <h3 className="font-semibold text-gray-700 mb-2">Tags</h3>
                 <div className="flex flex-wrap gap-2">
-                  {postDetail?.tags &&
-                    postDetail?.tags.map((tag, index) => (
+                  {postDetail?.tagsData?.length > 0 &&
+                    postDetail?.tagsData?.map((tag) => (
                       <span
-                        key={index}
+                        key={tag?._id}
                         className="px-3 py-1 bg-blue-50 text-blue-600 text-sm font-medium rounded-full"
                       >
-                        #{tag}
+                        #{tag?.name}
                       </span>
                     ))}
                 </div>

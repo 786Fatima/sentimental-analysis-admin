@@ -24,7 +24,6 @@ export default function FeedbackDetail() {
     data: postDetail,
     isLoading: postIsLoading,
     isError: postIsError,
-    isFetching,
   } = useGetPostById(postId);
 
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -218,7 +217,7 @@ const AnalysisModal = ({ postId = null, setShowAnalysis = () => {} }) => {
         {postSentimentIsLoading ? (
           <div className="w-full aspect-[16/9] flex flex-row justify-center items-center space-y-4">
             <ClipLoader color="#0ea5e9" size={40} />
-            <p className="text-gray-600 font-medium">Loading...</p>
+            {/* <p className="text-gray-600 font-medium">Loading...</p> */}
           </div>
         ) : (
           <div className="p-6 space-y-6">

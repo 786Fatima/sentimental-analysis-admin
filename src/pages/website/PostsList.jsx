@@ -414,7 +414,7 @@ export default function PostsList() {
                         >
                           <FiMessageCircle className="w-6 h-6" />
                         </button>
-                        <button
+                        {/*<button
                           onClick={(e) => {
                             e.stopPropagation();
                             if (!isUserAuthenticated) {
@@ -426,7 +426,7 @@ export default function PostsList() {
                           className="text-gray-700 hover:text-green-600 transition-colors"
                         >
                           <FiShare2 className="w-6 h-6" />
-                        </button>
+                        </button> */}
                       </div>
 
                       {/* Likes Count */}

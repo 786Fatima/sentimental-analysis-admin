@@ -390,7 +390,7 @@ export default function UserDetail() {
       </div>
 
       {/* Recent Interactions */}
-      <div className="bg-white rounded-lg shadow">
+      {/* <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <h3 className="text-lg font-medium text-gray-900">
             Recent Post Interactions
@@ -399,7 +399,7 @@ export default function UserDetail() {
             Latest activities and engagements
           </p>
         </div>
-        {/* <div className="divide-y divide-gray-200">
+        <div className="divide-y divide-gray-200">
           {recentInteractions.length === 0 ? (
             <div className="px-6 py-12 text-center">
               <FiActivity className="mx-auto h-12 w-12 text-gray-400" />
@@ -445,8 +445,8 @@ export default function UserDetail() {
               </div>
             ))
           )}
-        </div> */}
-      </div>
+        </div>
+      </div> */}
 
       {/* Modals would be implemented here */}
       {/* Edit User Modal */}
